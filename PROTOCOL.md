@@ -1,12 +1,12 @@
-# Camera protocol v1
+# Camera protocol v2
 
 `include/camera_uapi.h` defines fixed-width kernel structures. This first release
 targets the verified little-endian AArch64 Android/chroot pair. The registration
 contains an explicit version and structure size; reserved input fields must be
-zero. Capability flags unsupported by v1 are not silently accepted.
+zero. Capability flags unsupported by v2 are not silently accepted.
 
 The root-owned abstract Unix SOCK_SEQPACKET listener is
-`linux-camera-broker-v1`. It validates SO_PEERCRED against the exact package UID
+`linux-camera-broker-v2`. It validates SO_PEERCRED against the exact package UID
 in `/data/system/packages.list`. Only that helper receives an SCM_RIGHTS control
 FD with a one-byte `F` marker. The helper verifies the root peer and descriptor
 message. The broker closes its own FD immediately after transfer. No app UID is
@@ -52,3 +52,19 @@ are converted to CLOCK_MONOTONIC using a freshly sampled offset per frame.
 Native callbacks serialize access to the single active reader. Stop first detaches
 it, then deletes it without holding the callback mutex, and finally closes shared
 mappings. Camera2 callbacks are generation-checked on one Java handler thread.
+
+## Immutable color contract
+
+Protocol v2 replaces the registration reserved word with a required color
+profile. Structure sizes and ioctl command numbers are unchanged, but v1
+registration is rejected. Duplicate endpoint identifiers are also rejected.
+
+- BT709_LIMITED: Rec.709 primaries and matrix, limited quantization, Rec.709 transfer.
+- BT601_625_FULL: BT.601-625 primaries (V4L2 470_SYSTEM_BG), BT.601 matrix,
+  full quantization, SMPTE 170M transfer (identical to Rec.709 transfer).
+
+The Android producer registers BT601_625_FULL, requests ADATASPACE_JFIF and
+checks every acquired image against it before copying. G_FMT, TRY_FMT and
+S_FMT expose the registered profile before streaming. A mismatched dataspace
+errors the stream; metadata never changes silently midway through capture.
+This is raw planar YUV, not a JPEG codec despite Android's JFIF dataspace name.

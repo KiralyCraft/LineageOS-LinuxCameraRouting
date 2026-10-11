@@ -69,3 +69,33 @@ Three rear lenses appeared both through the logical camera and as public IDs.
 The next APK deduplicates stable identifiers to expose four unique endpoints
 instead of overwriting the same three rear aliases. Updated APK testing and
 actual camera streaming qualification are still pending.
+
+## Capture-path correction (0.1.3)
+
+The installed 0.1.1 producer was tested at 1280x720@30 against every exposed
+node. Three logical-parent physical outputs were rejected during Camera2
+session validation. The front camera and three individually public rear IDs
+started capture but produced Android dataspace 146931712 (ADATASPACE_JFIF),
+which the BT.709-only producer correctly refused to mislabel. Zero frames
+reached Linux; no visual-success claim is made for that version.
+
+0.1.3 selects public lens IDs directly and deduplicates stable endpoints.
+It requests and validates full-range BT.601-625, with an explicit immutable
+color profile in protocol v2 and matching V4L2 metadata. No pixel conversion,
+additional image copy, or encoder was added. Old protocol registration is
+rejected.
+
+Passed on the phone after live module replacement:
+- Both color profiles round-trip through V4L2 G_FMT, TRY_FMT and S_FMT for the
+  full-range case, plus G_FMT for BT.709 limited.
+- Old protocol, unknown color profile, and duplicate identifier rejection.
+- Full existing synthetic buffer-lifecycle and exact-pixel tests.
+- V4L2 API compliance: 48/48, zero failures and warnings.
+
+Build and packing sanitizer tests passed on the designated build server.
+The new module and broker are loaded temporarily. Visual capture on 0.1.3
+requires manual installation of the new matching APK; not yet verified.
+
+Color references:
+- https://developer.android.com/ndk/reference/group/a-data-space
+- https://docs.kernel.org/userspace-api/media/v4l/colorspaces-details.html

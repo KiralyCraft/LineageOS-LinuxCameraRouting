@@ -3,12 +3,14 @@
 #include <linux/types.h>
 #include <linux/ioctl.h>
 
-#define CAMERA_VERSION 1
+#define CAMERA_VERSION 2
+#define CAMERA_COLOR_BT709_LIMITED 1
+#define CAMERA_COLOR_BT601_625_FULL 2
 #define CAMERA_COUNT 8
 #define CAMERA_MODES 32
 #define CAMERA_BUFFERS 8
 #define CAMERA_NAME 64
-#define CAMERA_SOCKET "linux-camera-broker-v1"
+#define CAMERA_SOCKET "linux-camera-broker-v2"
 
 struct camera_mode
 {
@@ -27,7 +29,8 @@ struct camera_register
 	__u32 mode_count;
 	__u32 index;
 	__s32 video_number;
-	__u32 reserved;
+	/* Immutable color contract, checked by the producer on every frame. */
+	__u32 color_profile;
 	struct camera_mode modes[CAMERA_MODES];
 };
 

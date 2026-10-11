@@ -26,7 +26,8 @@ final class Catalog
 	static List<Entry> enumerate(CameraManager manager) throws Exception
 	{
 		List<Entry> entries = new ArrayList<>();
-		for (String id : manager.getCameraIdList())
+		List<String> publicCameras = java.util.Arrays.asList(manager.getCameraIdList());
+		for (String id : publicCameras)
 		{
 			CameraCharacteristics info = manager.getCameraCharacteristics(id);
 			Integer facing = info.get(CameraCharacteristics.LENS_FACING);
@@ -42,7 +43,11 @@ final class Catalog
 					try
 					{
 						CameraCharacteristics lensInfo = manager.getCameraCharacteristics(lens);
-						add(entries, id, lens, lensInfo, "Rear", "rear-" + lens);
+						// Prefer an individually openable lens over logical output routing.
+						if (publicCameras.contains(lens))
+							add(entries, lens, null, lensInfo, "Rear", "rear-" + lens);
+						else
+							add(entries, id, lens, lensInfo, "Rear", "rear-" + lens);
 					}
 					catch (Exception unavailable)
 					{
@@ -111,7 +116,7 @@ final class Catalog
 		entry.identifier = endpoint;
 		entry.name = "Linux Camera " + name;
 		float[] focal = info.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
-		if (physical != null && focal != null && focal.length > 0)
+		if ("Rear".equals(name) && focal != null && focal.length > 0)
 			entry.name += String.format(java.util.Locale.ROOT, " %.2fmm", focal[0]);
 		entry.modes = new int[modes.size() * 3];
 		for (int i = 0; i < modes.size(); i++)

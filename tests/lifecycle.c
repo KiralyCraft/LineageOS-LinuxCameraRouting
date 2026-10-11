@@ -45,8 +45,15 @@ int main(int __argc, char **__argv)
 	_lifecycle_check(_control >= 0, "open exclusive producer");
 	int32_t _duplicate = open("/dev/linux_camera", O_RDWR | O_CLOEXEC);
 	_lifecycle_check(_duplicate < 0 && errno == EBUSY, "second producer rejected");
-	struct camera_register _camera = {.version = CAMERA_VERSION, .size = sizeof(_camera), .name = "Linux Camera Synthetic", .identifier = "synthetic", .mode_count = 1, .modes = {{64, 48, 30, 0}}};
+	struct camera_register _camera = {.version = CAMERA_VERSION, .size = sizeof(_camera), .name = "Linux Camera Synthetic", .identifier = "synthetic", .mode_count = 1, .color_profile = CAMERA_COLOR_BT601_625_FULL, .modes = {{64, 48, 30, 0}}};
+	struct camera_register _invalid = _camera;
+	_invalid.version = 1;
+	_lifecycle_check(ioctl(_control, CAMERA_REGISTER, &_invalid) < 0 && errno == EINVAL, "old producer contract rejected");
+	_invalid = _camera;
+	_invalid.color_profile = 0;
+	_lifecycle_check(ioctl(_control, CAMERA_REGISTER, &_invalid) < 0 && errno == EINVAL, "unknown color profile rejected");
 	_lifecycle_check(ioctl(_control, CAMERA_REGISTER, &_camera) == 0, "register camera");
+	_lifecycle_check(ioctl(_control, CAMERA_REGISTER, &_camera) < 0 && errno == EEXIST, "duplicate endpoint rejected");
 	char _path[64];
 	snprintf(_path, sizeof(_path), "/dev/video%d", _camera.video_number);
 	int32_t _consumer = device_open(_path, O_RDWR | O_NONBLOCK | O_CLOEXEC);
@@ -63,6 +70,24 @@ int main(int __argc, char **__argv)
 		close(_control);
 		return 0;
 	}
+	const uint32_t _formatCommands[] = {VIDIOC_G_FMT, VIDIOC_TRY_FMT, VIDIOC_S_FMT};
+	for (size_t _i = 0; _i < sizeof(_formatCommands) / sizeof(_formatCommands[0]); ++_i)
+	{
+		struct v4l2_format _format = {.type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .fmt.pix = {.width = 64, .height = 48, .pixelformat = V4L2_PIX_FMT_YUV420, .priv = V4L2_PIX_FMT_PRIV_MAGIC}};
+		_lifecycle_check(ioctl(_consumer, _formatCommands[_i], &_format) == 0, "query and negotiate full-range color");
+		_lifecycle_check(_format.fmt.pix.colorspace == V4L2_COLORSPACE_470_SYSTEM_BG && _format.fmt.pix.ycbcr_enc == V4L2_YCBCR_ENC_601 && _format.fmt.pix.quantization == V4L2_QUANTIZATION_FULL_RANGE && _format.fmt.pix.xfer_func == V4L2_XFER_FUNC_709, "JFIF metadata preserved");
+	}
+	struct camera_register _limited = _camera;
+	strcpy(_limited.identifier, "synthetic-limited");
+	_limited.color_profile = CAMERA_COLOR_BT709_LIMITED;
+	_lifecycle_check(ioctl(_control, CAMERA_REGISTER, &_limited) == 0, "register limited-range profile");
+	char _limitedPath[64];
+	snprintf(_limitedPath, sizeof(_limitedPath), "/dev/video%d", _limited.video_number);
+	int32_t _limitedConsumer = device_open(_limitedPath, O_RDWR | O_NONBLOCK | O_CLOEXEC);
+	_lifecycle_check(_limitedConsumer >= 0, "open limited-range profile");
+	struct v4l2_format _limitedFormat = {.type = V4L2_BUF_TYPE_VIDEO_CAPTURE};
+	_lifecycle_check(ioctl(_limitedConsumer, VIDIOC_G_FMT, &_limitedFormat) == 0 && _limitedFormat.fmt.pix.colorspace == V4L2_COLORSPACE_REC709 && _limitedFormat.fmt.pix.ycbcr_enc == V4L2_YCBCR_ENC_709 && _limitedFormat.fmt.pix.quantization == V4L2_QUANTIZATION_LIM_RANGE && _limitedFormat.fmt.pix.xfer_func == V4L2_XFER_FUNC_709, "BT709 metadata preserved");
+	close(_limitedConsumer);
 	struct v4l2_requestbuffers _request = {.count = 3, .type = V4L2_BUF_TYPE_VIDEO_CAPTURE, .memory = V4L2_MEMORY_MMAP};
 	_lifecycle_check(ioctl(_consumer, VIDIOC_REQBUFS, &_request) == 0 && _request.count == 3, "allocate consumer buffers");
 	int32_t _second = open(_path, O_RDWR | O_NONBLOCK | O_CLOEXEC);
@@ -149,6 +174,6 @@ int main(int __argc, char **__argv)
 		munmap(_consumerMaps[_i], _lengths[_i]);
 	}
 	close(_consumer);
-	puts("PASS synthetic: exact patterns, DMA-BUF sharing, exclusive ownership, held buffers, stale epochs, cancellation, restart, producer death");
+	puts("PASS synthetic: color profiles, old ABI and duplicate rejection, exact patterns, DMA-BUF sharing, exclusive ownership, held buffers, stale epochs, cancellation, restart, producer death");
 	return 0;
 }

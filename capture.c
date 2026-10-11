@@ -140,9 +140,9 @@ static void _capture_image(void *__context, AImageReader *__reader)
 	AImageCropRect _crop;
 	int64_t _timestamp = 0;
 	int32_t _dataSpace = 0;
-	if (AImage_getDataSpace(_image, &_dataSpace) != AMEDIA_OK || _dataSpace != ADATASPACE_BT709)
+	if (AImage_getDataSpace(_image, &_dataSpace) != AMEDIA_OK || _dataSpace != ADATASPACE_JFIF)
 	{
-		__android_log_print(ANDROID_LOG_ERROR, "LinuxCamera", "Unexpected raw dataspace %d; expected BT709 limited", _dataSpace);
+		__android_log_print(ANDROID_LOG_ERROR, "LinuxCamera", "Unexpected raw dataspace %d; expected BT601-625 full range", _dataSpace);
 		_result = -1;
 	}
 	if (AImage_getCropRect(_image, &_crop) != AMEDIA_OK || AImage_getTimestamp(_image, &_timestamp) != AMEDIA_OK)
@@ -362,7 +362,7 @@ JNIEXPORT jint JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_registerCamera(J
 {
 	(void)__class;
 	capture_t *_capture = (capture_t *)(intptr_t)__handle;
-	struct camera_register _description = {.version = CAMERA_VERSION, .size = sizeof(_description)};
+	struct camera_register _description = {.version = CAMERA_VERSION, .size = sizeof(_description), .color_profile = CAMERA_COLOR_BT601_625_FULL};
 	jsize _length = (*__env)->GetArrayLength(__env, __modes);
 	if (_length <= 0 || _length % 3 || _length / 3 > CAMERA_MODES || _capture->started)
 	{
@@ -427,7 +427,7 @@ JNIEXPORT jobject JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_surface(JNIEn
 	capture_t *_capture = (capture_t *)(intptr_t)__handle;
 	pthread_mutex_lock(&_capture->mutex);
 	struct camera_state _state = {.index = __index};
-	if (_capture->reader || ioctl(_capture->control, CAMERA_QUERY, &_state) || _state.generation != (uint64_t)__generation || !_state.running || _state.mode.width != (uint32_t)__width || _state.mode.height != (uint32_t)__height || AImageReader_newWithDataSpace(__width, __height, AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN, 3, AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420, ADATASPACE_BT709, &_capture->reader) != AMEDIA_OK)
+	if (_capture->reader || ioctl(_capture->control, CAMERA_QUERY, &_state) || _state.generation != (uint64_t)__generation || !_state.running || _state.mode.width != (uint32_t)__width || _state.mode.height != (uint32_t)__height || AImageReader_newWithDataSpace(__width, __height, AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN, 3, AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420, ADATASPACE_JFIF, &_capture->reader) != AMEDIA_OK)
 	{
 		pthread_mutex_unlock(&_capture->mutex);
 		_capture_throw(__env, "Camera stream was cancelled or image reader failed");

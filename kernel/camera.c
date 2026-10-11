@@ -202,7 +202,7 @@ static void _camera_video_release(struct video_device *__video)
 
 static int _camera_register(struct camera_register *__description)
 {
-	if (__description->version != CAMERA_VERSION || __description->size != sizeof(*__description) || __description->reserved || !__description->mode_count || __description->mode_count > CAMERA_MODES || !memchr(__description->name, 0, CAMERA_NAME) || !memchr(__description->identifier, 0, CAMERA_NAME))
+	if (__description->version != CAMERA_VERSION || __description->size != sizeof(*__description) || (__description->color_profile != CAMERA_COLOR_BT709_LIMITED && __description->color_profile != CAMERA_COLOR_BT601_625_FULL) || !__description->mode_count || __description->mode_count > CAMERA_MODES || !memchr(__description->name, 0, CAMERA_NAME) || !memchr(__description->identifier, 0, CAMERA_NAME))
 	{
 		return -EINVAL;
 	}
@@ -212,6 +212,13 @@ static int _camera_register(struct camera_register *__description)
 		if (!_mode->width || !_mode->height || _mode->width > 3840 || _mode->height > 2160 || (_mode->width & 1) || (_mode->height & 1) || !_mode->fps || _mode->fps > 60 || _mode->reserved)
 		{
 			return -EINVAL;
+		}
+	}
+	for (u32 _i = 0; _i < CAMERA_COUNT; ++_i)
+	{
+		if (_camera_devices[_i] && !strcmp(_camera_devices[_i]->description.identifier, __description->identifier))
+		{
+			return -EEXIST;
 		}
 	}
 	u32 _index;

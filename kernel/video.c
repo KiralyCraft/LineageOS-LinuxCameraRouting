@@ -20,7 +20,7 @@ static int _video_enum_format(struct file *__file, void *__context, struct v4l2_
 	return 0;
 }
 
-static void _video_fill_format(const struct camera_mode *__mode, struct v4l2_format *__format)
+static void _video_fill_format(const struct camera_mode *__mode, u32 __profile, struct v4l2_format *__format)
 {
 	memset(&__format->fmt.pix, 0, sizeof(__format->fmt.pix));
 	__format->fmt.pix.width = __mode->width;
@@ -29,9 +29,20 @@ static void _video_fill_format(const struct camera_mode *__mode, struct v4l2_for
 	__format->fmt.pix.field = V4L2_FIELD_NONE;
 	__format->fmt.pix.bytesperline = __mode->width;
 	__format->fmt.pix.sizeimage = __mode->width * __mode->height * 3 / 2;
-	__format->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
-	__format->fmt.pix.ycbcr_enc = V4L2_YCBCR_ENC_709;
-	__format->fmt.pix.quantization = V4L2_QUANTIZATION_LIM_RANGE;
+	if (__profile == CAMERA_COLOR_BT601_625_FULL)
+	{
+		/* Android JFIF: BT.601-625 primaries, full range, SMPTE 170M transfer.
+		 * SMPTE 170M and Rec.709 use the same transfer function. */
+		__format->fmt.pix.colorspace = V4L2_COLORSPACE_470_SYSTEM_BG;
+		__format->fmt.pix.ycbcr_enc = V4L2_YCBCR_ENC_601;
+		__format->fmt.pix.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+	}
+	else
+	{
+		__format->fmt.pix.colorspace = V4L2_COLORSPACE_REC709;
+		__format->fmt.pix.ycbcr_enc = V4L2_YCBCR_ENC_709;
+		__format->fmt.pix.quantization = V4L2_QUANTIZATION_LIM_RANGE;
+	}
 	__format->fmt.pix.xfer_func = V4L2_XFER_FUNC_709;
 }
 
@@ -57,7 +68,7 @@ static u32 _video_nearest(camera_t *__camera, u32 __width, u32 __height)
 static int _video_get_format(struct file *__file, void *__context, struct v4l2_format *__format)
 {
 	camera_t *_camera = video_drvdata(__file);
-	_video_fill_format(&_camera->mode, __format);
+	_video_fill_format(&_camera->mode, _camera->description.color_profile, __format);
 	return 0;
 }
 
@@ -65,7 +76,7 @@ static int _video_try_format(struct file *__file, void *__context, struct v4l2_f
 {
 	camera_t *_camera = video_drvdata(__file);
 	u32 _selected = _video_nearest(_camera, min(__format->fmt.pix.width, 8192U), min(__format->fmt.pix.height, 8192U));
-	_video_fill_format(&_camera->description.modes[_selected], __format);
+	_video_fill_format(&_camera->description.modes[_selected], _camera->description.color_profile, __format);
 	return 0;
 }
 

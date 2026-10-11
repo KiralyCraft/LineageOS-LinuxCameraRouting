@@ -3,7 +3,7 @@
 Android Camera2 capture exposed to the same device's Linux chroot as ordinary
 V4L2 webcams. Source: https://github.com/KiralyCraft/LineageOS-LinuxCameraRouting.
 
-## Current release: 0.1.2, first device-test candidate
+## Current release: 0.1.3, first device-test candidate
 
 The kernel module's synthetic lifecycle tests and 48 V4L2 API compliance tests
 have passed on the Xperia XQ-DQ72. Helper startup and camera registration now pass with SELinux enforcing.
@@ -18,8 +18,9 @@ V4L2 capture buffer shared with the Linux application through mmap.
 
 No JPEG/H.264 encoder or decoder, RGB intermediate, video socket payload, Linux
 frame relay, scaling, rotation, or mirroring. Android's camera HAL/ISP produces
-the YUV image; the bridge preserves its pixel samples. It requests BT.709 limited
-range and rejects an unexpected dataspace instead of advertising incorrect colors.
+the YUV image; the bridge preserves its pixel samples. It requests full-range BT.601-625 (Android JFIF) and verifies that dataspace
+on every image. V4L2 advertises matching primaries, transfer, matrix and range;
+unexpected dataspaces fail instead of silently relabeling or converting samples.
 
 The camera broker authenticates the installed `dev.kiraly.linuxcamera` UID,
 hands over the exclusive kernel producer descriptor, and grants UID/GID 4000
@@ -27,7 +28,8 @@ access only to new `linux-camera` nodes. The broker never receives frame data.
 Each capture allocation is exported and mapped once per generation.
 
 The helper exposes front and individually selectable rear physical endpoints
-where Camera2 permits them. V1 conservatively admits one hardware stream across
+where Camera2 permits them. It prefers publicly openable lens IDs; physical
+output routing through a logical parent is used only for hidden lens IDs. V1 conservatively admits one hardware stream across
 all endpoints, and one capture owner per node. Camera enumeration does not open
 hardware. Linux STREAMON starts it; STREAMOFF/close releases it. The app's
 foreground service and Android camera indicator remain visible while enabled.
@@ -44,13 +46,15 @@ counted. Such frame drops differ from compression or changing pixel samples.
 
 ## Installation and startup
 
-1. Install `LinuxCameraRouting-0.1.2.zip` through Magisk, then reboot. It is pinned
+1. Install `LinuxCameraRouting-0.1.3.zip` through Magisk, then reboot. It is pinned
    to kernel `5.15.176-gd00ba216ccda`; a mismatched kernel is refused.
-2. Install `LinuxCamera-0.1.2.apk` manually. Grant camera permission, open the app,
+2. Install `LinuxCamera-0.1.3.apk` manually. Grant camera permission, open the app,
    and tap **Enable Linux cameras**.
 3. In Linux, optionally run `./install-linux.sh` to install `linux-cameractl`.
    Select a Linux Camera entry in Firefox, OBS or another V4L2 application.
 
+Version 0.1.3 requires its matched APK, broker and kernel module (protocol v2);
+older producers are rejected rather than interpreted with the wrong colors.
 The module boots the broker independently of APK installation. The helper must
 be enabled from Android after a reboot. Enabling it registers devices but leaves
 camera hardware idle until a Linux application streams. No LXDE audio changes
