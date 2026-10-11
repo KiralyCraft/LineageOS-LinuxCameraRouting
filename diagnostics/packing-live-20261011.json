@@ -1,0 +1,776 @@
+{
+  "source_commit": "ba4843c",
+  "apk_version": "0.1.4",
+  "installed_module_version": "0.1.3",
+  "phone": "Xperia XQ-DQ72",
+  "power": "Dozing, externally powered, battery 100%, battery temperature 31.0 C sampled during matrix; no policy changes",
+  "method": "For each main-camera mode: reference, fast, reference; 3 seconds from FFmpeg launch for startup, then 15 seconds CPU/progress sampling. Stage histograms include all captured frames, including startup. CPU 100% means one core. SIGINT stops FFmpeg, return 255 expected.",
+  "consumer": "ffmpeg -hide_banner -nostdin -nostats -stats_period 0.1 -progress pipe:1 -f v4l2 -input_format yuv420p -video_size WIDTHxHEIGHT -framerate FPS -i /dev/linux-camera/rear-2 -map 0:v:0 -c:v copy -f null /dev/null",
+  "results": [
+    {
+      "name": "1920x1080-30-0-reference",
+      "packing": "reference",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 25.6,
+          "rss_kib": 149928
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2728
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.8,
+          "rss_kib": 19736
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 95.98,
+          "rss_kib": 263344
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.4,
+          "rss_kib": 62848
+        }
+      },
+      "steady_seconds": 15.002539525999964,
+      "steady_frames": 452,
+      "wall_fps": 30.12823257133681,
+      "timestamp_fps": 29.981089361555355,
+      "returncode": 255,
+      "helper_log": "--------- beginning of main\n10-11 14:37:19.487 13526 13551 I LinuxCamera: Packing mode: reference\n10-11 14:37:21.157 13526 13551 I LinuxCamera: Opening Linux Camera Rear 6.08mm 1920\u00d71080 @ 30\n10-11 14:37:21.363 13526 13551 I LinuxCamera: Streaming Linux Camera Rear 6.08mm @ 30 fps; native orientation\n10-11 14:37:37.937 13526 13551 I LinuxCamera: timing stream=0 generation=1 mode=reference size=1920x1080 rows=1920/1920/1920 pixels=1/2/2\n10-11 14:37:37.937 13526 13551 I LinuxCamera: timing stage=acquire count=466 mean_ms=0.0372 p95_upper_ms=0.0640 max_ms=0.1697\n10-11 14:37:37.937 13526 13551 I LinuxCamera: timing stage=destination_map count=465 mean_ms=0.0095 p95_upper_ms=0.0010 max_ms=0.7079\n10-11 14:37:37.937 13526 13551 I LinuxCamera: timing stage=source_access count=465 mean_ms=0.1745 p95_upper_ms=0.5120 max_ms=4.7834\n10-11 14:37:37.937 13526 13551 I LinuxCamera: timing stage=sync_begin count=465 mean_ms=0.0050 p95_upper_ms=0.0080 max_ms=0.0111\n10-11 14:37:37.937 13526 13551 I LinuxCamera: timing stage=pack count=465 mean_ms=7.2716 p95_upper_ms=16.3840 max_ms=16.7845\n10-11 14:37:37.937 13526 13551 I LinuxCamera: timing stage=sync_end count=465 mean_ms=0.0115 p95_upper_ms=0.0160 max_ms=0.5717\n10-11 14:37:37.937 13526 13551 I LinuxCamera: timing stage=complete count=465 mean_ms=0.0187 p95_upper_ms=0.0320 max_ms=0.4503\n10-11 14:37:37.937 13526 13551 I LinuxCamera: timing stage=release count=465 mean_ms=0.0804 p95_upper_ms=0.1280 max_ms=0.6439\n10-11 14:37:37.937 13526 13551 I LinuxCamera: Frames: 465; drops: 1; copy mean/max: 7.29/16.80 ms; max delivery age: 93.93 ms\n10-11 14:37:37.948 13526 13551 I LinuxCamera: Ready; camera released\n",
+      "stages": {
+        "acquire": {
+          "count": 466,
+          "mean_ms": 0.0372,
+          "p95_upper_ms": 0.064,
+          "max_ms": 0.1697
+        },
+        "destination_map": {
+          "count": 465,
+          "mean_ms": 0.0095,
+          "p95_upper_ms": 0.001,
+          "max_ms": 0.7079
+        },
+        "source_access": {
+          "count": 465,
+          "mean_ms": 0.1745,
+          "p95_upper_ms": 0.512,
+          "max_ms": 4.7834
+        },
+        "sync_begin": {
+          "count": 465,
+          "mean_ms": 0.005,
+          "p95_upper_ms": 0.008,
+          "max_ms": 0.0111
+        },
+        "pack": {
+          "count": 465,
+          "mean_ms": 7.2716,
+          "p95_upper_ms": 16.384,
+          "max_ms": 16.7845
+        },
+        "sync_end": {
+          "count": 465,
+          "mean_ms": 0.0115,
+          "p95_upper_ms": 0.016,
+          "max_ms": 0.5717
+        },
+        "complete": {
+          "count": 465,
+          "mean_ms": 0.0187,
+          "p95_upper_ms": 0.032,
+          "max_ms": 0.4503
+        },
+        "release": {
+          "count": 465,
+          "mean_ms": 0.0804,
+          "p95_upper_ms": 0.128,
+          "max_ms": 0.6439
+        }
+      }
+    },
+    {
+      "name": "1920x1080-30-1-fast",
+      "packing": "fast",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 10.13,
+          "rss_kib": 152352
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2728
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 8.26,
+          "rss_kib": 20764
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 97.97,
+          "rss_kib": 263828
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.53,
+          "rss_kib": 39296
+        }
+      },
+      "steady_seconds": 15.004377338000268,
+      "steady_frames": 449,
+      "wall_fps": 29.924600660559047,
+      "timestamp_fps": 29.981089210967845,
+      "returncode": 255,
+      "helper_log": "10-11 14:37:38.040 13526 13551 I LinuxCamera: Packing mode: fast\n10-11 14:37:38.207 13526 13551 I LinuxCamera: Opening Linux Camera Rear 6.08mm 1920\u00d71080 @ 30\n10-11 14:37:38.400 13526 13551 I LinuxCamera: Streaming Linux Camera Rear 6.08mm @ 30 fps; native orientation\n10-11 14:37:56.401 13526 13551 I LinuxCamera: timing stream=0 generation=3 mode=fast size=1920x1080 rows=1920/1920/1920 pixels=1/2/2\n10-11 14:37:56.401 13526 13551 I LinuxCamera: timing stage=acquire count=517 mean_ms=0.0463 p95_upper_ms=0.1280 max_ms=0.4942\n10-11 14:37:56.401 13526 13551 I LinuxCamera: timing stage=destination_map count=517 mean_ms=0.0084 p95_upper_ms=0.0010 max_ms=0.7171\n10-11 14:37:56.402 13526 13551 I LinuxCamera: timing stage=source_access count=517 mean_ms=0.2054 p95_upper_ms=0.5120 max_ms=1.2550\n10-11 14:37:56.402 13526 13551 I LinuxCamera: timing stage=sync_begin count=517 mean_ms=0.0065 p95_upper_ms=0.0080 max_ms=0.3134\n10-11 14:37:56.402 13526 13551 I LinuxCamera: timing stage=pack count=517 mean_ms=1.0844 p95_upper_ms=2.0480 max_ms=3.7289\n10-11 14:37:56.402 13526 13551 I LinuxCamera: timing stage=sync_end count=517 mean_ms=0.0087 p95_upper_ms=0.0160 max_ms=0.2536\n10-11 14:37:56.402 13526 13551 I LinuxCamera: timing stage=complete count=517 mean_ms=0.0174 p95_upper_ms=0.0320 max_ms=0.5072\n10-11 14:37:56.402 13526 13551 I LinuxCamera: timing stage=release count=517 mean_ms=0.0768 p95_upper_ms=0.2560 max_ms=0.7915\n10-11 14:37:56.403 13526 13551 I LinuxCamera: Frames: 517; drops: 0; copy mean/max: 1.10/3.74 ms; max delivery age: 71.31 ms\n10-11 14:37:56.414 13526 13551 I LinuxCamera: Ready; camera released\n",
+      "stages": {
+        "acquire": {
+          "count": 517,
+          "mean_ms": 0.0463,
+          "p95_upper_ms": 0.128,
+          "max_ms": 0.4942
+        },
+        "destination_map": {
+          "count": 517,
+          "mean_ms": 0.0084,
+          "p95_upper_ms": 0.001,
+          "max_ms": 0.7171
+        },
+        "source_access": {
+          "count": 517,
+          "mean_ms": 0.2054,
+          "p95_upper_ms": 0.512,
+          "max_ms": 1.255
+        },
+        "sync_begin": {
+          "count": 517,
+          "mean_ms": 0.0065,
+          "p95_upper_ms": 0.008,
+          "max_ms": 0.3134
+        },
+        "pack": {
+          "count": 517,
+          "mean_ms": 1.0844,
+          "p95_upper_ms": 2.048,
+          "max_ms": 3.7289
+        },
+        "sync_end": {
+          "count": 517,
+          "mean_ms": 0.0087,
+          "p95_upper_ms": 0.016,
+          "max_ms": 0.2536
+        },
+        "complete": {
+          "count": 517,
+          "mean_ms": 0.0174,
+          "p95_upper_ms": 0.032,
+          "max_ms": 0.5072
+        },
+        "release": {
+          "count": 517,
+          "mean_ms": 0.0768,
+          "p95_upper_ms": 0.256,
+          "max_ms": 0.7915
+        }
+      }
+    },
+    {
+      "name": "1920x1080-30-2-reference",
+      "packing": "reference",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 25.92,
+          "rss_kib": 157828
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2728
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.66,
+          "rss_kib": 21724
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 95.9,
+          "rss_kib": 264268
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.47,
+          "rss_kib": 39308
+        }
+      },
+      "steady_seconds": 15.005099942000015,
+      "steady_frames": 451,
+      "wall_fps": 30.05644759070406,
+      "timestamp_fps": 29.981088647232006,
+      "returncode": 255,
+      "helper_log": "10-11 14:37:56.486 13526 13551 I LinuxCamera: Packing mode: reference\n10-11 14:37:56.651 13526 13551 I LinuxCamera: Opening Linux Camera Rear 6.08mm 1920\u00d71080 @ 30\n10-11 14:37:56.825 13526 13551 I LinuxCamera: Streaming Linux Camera Rear 6.08mm @ 30 fps; native orientation\n10-11 14:38:14.982 13526 13551 I LinuxCamera: timing stream=0 generation=5 mode=reference size=1920x1080 rows=1920/1920/1920 pixels=1/2/2\n10-11 14:38:14.982 13526 13551 I LinuxCamera: timing stage=acquire count=521 mean_ms=0.0489 p95_upper_ms=0.0640 max_ms=5.4271\n10-11 14:38:14.982 13526 13551 I LinuxCamera: timing stage=destination_map count=521 mean_ms=0.0076 p95_upper_ms=0.0010 max_ms=0.5856\n10-11 14:38:14.982 13526 13551 I LinuxCamera: timing stage=source_access count=521 mean_ms=0.1645 p95_upper_ms=0.2560 max_ms=0.6215\n10-11 14:38:14.982 13526 13551 I LinuxCamera: timing stage=sync_begin count=521 mean_ms=0.0054 p95_upper_ms=0.0080 max_ms=0.1190\n10-11 14:38:14.982 13526 13551 I LinuxCamera: timing stage=pack count=521 mean_ms=7.5473 p95_upper_ms=16.3840 max_ms=17.6552\n10-11 14:38:14.982 13526 13551 I LinuxCamera: timing stage=sync_end count=521 mean_ms=0.0100 p95_upper_ms=0.0160 max_ms=0.1072\n10-11 14:38:14.982 13526 13551 I LinuxCamera: timing stage=complete count=521 mean_ms=0.0163 p95_upper_ms=0.0320 max_ms=0.3077\n10-11 14:38:14.983 13526 13551 I LinuxCamera: timing stage=release count=521 mean_ms=0.0843 p95_upper_ms=0.2560 max_ms=0.7232\n10-11 14:38:14.983 13526 13551 I LinuxCamera: Frames: 521; drops: 0; copy mean/max: 7.57/17.68 ms; max delivery age: 74.83 ms\n10-11 14:38:14.993 13526 13551 I LinuxCamera: Ready; camera released\n",
+      "stages": {
+        "acquire": {
+          "count": 521,
+          "mean_ms": 0.0489,
+          "p95_upper_ms": 0.064,
+          "max_ms": 5.4271
+        },
+        "destination_map": {
+          "count": 521,
+          "mean_ms": 0.0076,
+          "p95_upper_ms": 0.001,
+          "max_ms": 0.5856
+        },
+        "source_access": {
+          "count": 521,
+          "mean_ms": 0.1645,
+          "p95_upper_ms": 0.256,
+          "max_ms": 0.6215
+        },
+        "sync_begin": {
+          "count": 521,
+          "mean_ms": 0.0054,
+          "p95_upper_ms": 0.008,
+          "max_ms": 0.119
+        },
+        "pack": {
+          "count": 521,
+          "mean_ms": 7.5473,
+          "p95_upper_ms": 16.384,
+          "max_ms": 17.6552
+        },
+        "sync_end": {
+          "count": 521,
+          "mean_ms": 0.01,
+          "p95_upper_ms": 0.016,
+          "max_ms": 0.1072
+        },
+        "complete": {
+          "count": 521,
+          "mean_ms": 0.0163,
+          "p95_upper_ms": 0.032,
+          "max_ms": 0.3077
+        },
+        "release": {
+          "count": 521,
+          "mean_ms": 0.0843,
+          "p95_upper_ms": 0.256,
+          "max_ms": 0.7232
+        }
+      }
+    },
+    {
+      "name": "1920x1080-60-0-reference",
+      "packing": "reference",
+      "width": 1920,
+      "height": 1080,
+      "fps": 60,
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 37.46,
+          "rss_kib": 167876
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2728
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 11.73,
+          "rss_kib": 22512
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 129.5,
+          "rss_kib": 263612
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 2.0,
+          "rss_kib": 39304
+        }
+      },
+      "steady_seconds": 15.004196087999844,
+      "steady_frames": 902,
+      "wall_fps": 60.11651638713303,
+      "timestamp_fps": 59.94675505290667,
+      "returncode": 255,
+      "helper_log": "10-11 14:38:15.147 13526 13551 I LinuxCamera: Packing mode: reference\n10-11 14:38:15.421 13526 13551 I LinuxCamera: Opening Linux Camera Rear 6.08mm 1920\u00d71080 @ 60\n10-11 14:38:15.654 13526 13551 I LinuxCamera: Streaming Linux Camera Rear 6.08mm @ 60 fps; native orientation\n10-11 14:38:33.673 13526 13551 I LinuxCamera: timing stream=0 generation=7 mode=reference size=1920x1080 rows=1920/1920/1920 pixels=1/2/2\n10-11 14:38:33.674 13526 13551 I LinuxCamera: timing stage=acquire count=1034 mean_ms=0.0324 p95_upper_ms=0.0640 max_ms=1.2154\n10-11 14:38:33.674 13526 13551 I LinuxCamera: timing stage=destination_map count=1033 mean_ms=0.0038 p95_upper_ms=0.0010 max_ms=0.8407\n10-11 14:38:33.674 13526 13551 I LinuxCamera: timing stage=source_access count=1033 mean_ms=0.1472 p95_upper_ms=0.2560 max_ms=4.1123\n10-11 14:38:33.674 13526 13551 I LinuxCamera: timing stage=sync_begin count=1033 mean_ms=0.0055 p95_upper_ms=0.0080 max_ms=0.8011\n10-11 14:38:33.674 13526 13551 I LinuxCamera: timing stage=pack count=1033 mean_ms=5.4849 p95_upper_ms=16.0019 max_ms=16.0019\n10-11 14:38:33.674 13526 13551 I LinuxCamera: timing stage=sync_end count=1033 mean_ms=0.0117 p95_upper_ms=0.0160 max_ms=1.8679\n10-11 14:38:33.674 13526 13551 I LinuxCamera: timing stage=complete count=1033 mean_ms=0.0172 p95_upper_ms=0.0320 max_ms=0.9753\n10-11 14:38:33.674 13526 13551 I LinuxCamera: timing stage=release count=1033 mean_ms=0.0880 p95_upper_ms=0.2560 max_ms=2.0179\n10-11 14:38:33.674 13526 13551 I LinuxCamera: Frames: 1033; drops: 1; copy mean/max: 5.51/16.02 ms; max delivery age: 66.79 ms\n10-11 14:38:33.687 13526 13551 I LinuxCamera: Ready; camera released\n",
+      "stages": {
+        "acquire": {
+          "count": 1034,
+          "mean_ms": 0.0324,
+          "p95_upper_ms": 0.064,
+          "max_ms": 1.2154
+        },
+        "destination_map": {
+          "count": 1033,
+          "mean_ms": 0.0038,
+          "p95_upper_ms": 0.001,
+          "max_ms": 0.8407
+        },
+        "source_access": {
+          "count": 1033,
+          "mean_ms": 0.1472,
+          "p95_upper_ms": 0.256,
+          "max_ms": 4.1123
+        },
+        "sync_begin": {
+          "count": 1033,
+          "mean_ms": 0.0055,
+          "p95_upper_ms": 0.008,
+          "max_ms": 0.8011
+        },
+        "pack": {
+          "count": 1033,
+          "mean_ms": 5.4849,
+          "p95_upper_ms": 16.0019,
+          "max_ms": 16.0019
+        },
+        "sync_end": {
+          "count": 1033,
+          "mean_ms": 0.0117,
+          "p95_upper_ms": 0.016,
+          "max_ms": 1.8679
+        },
+        "complete": {
+          "count": 1033,
+          "mean_ms": 0.0172,
+          "p95_upper_ms": 0.032,
+          "max_ms": 0.9753
+        },
+        "release": {
+          "count": 1033,
+          "mean_ms": 0.088,
+          "p95_upper_ms": 0.256,
+          "max_ms": 2.0179
+        }
+      }
+    },
+    {
+      "name": "1920x1080-60-1-fast",
+      "packing": "fast",
+      "width": 1920,
+      "height": 1080,
+      "fps": 60,
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 15.73,
+          "rss_kib": 202308
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2728
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 12.33,
+          "rss_kib": 23740
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 133.36,
+          "rss_kib": 262512
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 2.0,
+          "rss_kib": 39292
+        }
+      },
+      "steady_seconds": 15.003963222999573,
+      "steady_frames": 903,
+      "wall_fps": 60.184098466449946,
+      "timestamp_fps": 59.946752943963126,
+      "returncode": 255,
+      "helper_log": "10-11 14:38:33.855 13526 13551 I LinuxCamera: Packing mode: fast\n10-11 14:38:34.025 13526 13551 I LinuxCamera: Opening Linux Camera Rear 6.08mm 1920\u00d71080 @ 60\n10-11 14:38:34.238 13526 13551 I LinuxCamera: Streaming Linux Camera Rear 6.08mm @ 60 fps; native orientation\n10-11 14:38:52.282 13526 13551 I LinuxCamera: timing stream=0 generation=9 mode=fast size=1920x1080 rows=1920/1920/1920 pixels=1/2/2\n10-11 14:38:52.282 13526 13551 I LinuxCamera: timing stage=acquire count=1035 mean_ms=0.0409 p95_upper_ms=0.1280 max_ms=0.8092\n10-11 14:38:52.282 13526 13551 I LinuxCamera: timing stage=destination_map count=1034 mean_ms=0.0035 p95_upper_ms=0.0010 max_ms=0.5244\n10-11 14:38:52.282 13526 13551 I LinuxCamera: timing stage=source_access count=1034 mean_ms=0.1926 p95_upper_ms=0.5120 max_ms=6.6273\n10-11 14:38:52.282 13526 13551 I LinuxCamera: timing stage=sync_begin count=1034 mean_ms=0.0061 p95_upper_ms=0.0080 max_ms=0.3762\n10-11 14:38:52.282 13526 13551 I LinuxCamera: timing stage=pack count=1034 mean_ms=1.1017 p95_upper_ms=4.0960 max_ms=5.7516\n10-11 14:38:52.282 13526 13551 I LinuxCamera: timing stage=sync_end count=1034 mean_ms=0.0084 p95_upper_ms=0.0160 max_ms=0.6619\n10-11 14:38:52.282 13526 13551 I LinuxCamera: timing stage=complete count=1034 mean_ms=0.0171 p95_upper_ms=0.0320 max_ms=0.9186\n10-11 14:38:52.282 13526 13551 I LinuxCamera: timing stage=release count=1034 mean_ms=0.0775 p95_upper_ms=0.2560 max_ms=3.0615\n10-11 14:38:52.282 13526 13551 I LinuxCamera: Frames: 1034; drops: 1; copy mean/max: 1.12/5.77 ms; max delivery age: 65.88 ms\n10-11 14:38:52.292 13526 13551 I LinuxCamera: Ready; camera released\n",
+      "stages": {
+        "acquire": {
+          "count": 1035,
+          "mean_ms": 0.0409,
+          "p95_upper_ms": 0.128,
+          "max_ms": 0.8092
+        },
+        "destination_map": {
+          "count": 1034,
+          "mean_ms": 0.0035,
+          "p95_upper_ms": 0.001,
+          "max_ms": 0.5244
+        },
+        "source_access": {
+          "count": 1034,
+          "mean_ms": 0.1926,
+          "p95_upper_ms": 0.512,
+          "max_ms": 6.6273
+        },
+        "sync_begin": {
+          "count": 1034,
+          "mean_ms": 0.0061,
+          "p95_upper_ms": 0.008,
+          "max_ms": 0.3762
+        },
+        "pack": {
+          "count": 1034,
+          "mean_ms": 1.1017,
+          "p95_upper_ms": 4.096,
+          "max_ms": 5.7516
+        },
+        "sync_end": {
+          "count": 1034,
+          "mean_ms": 0.0084,
+          "p95_upper_ms": 0.016,
+          "max_ms": 0.6619
+        },
+        "complete": {
+          "count": 1034,
+          "mean_ms": 0.0171,
+          "p95_upper_ms": 0.032,
+          "max_ms": 0.9186
+        },
+        "release": {
+          "count": 1034,
+          "mean_ms": 0.0775,
+          "p95_upper_ms": 0.256,
+          "max_ms": 3.0615
+        }
+      }
+    },
+    {
+      "name": "1920x1080-60-2-reference",
+      "packing": "reference",
+      "width": 1920,
+      "height": 1080,
+      "fps": 60,
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 35.92,
+          "rss_kib": 188116
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2728
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 11.6,
+          "rss_kib": 24800
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 129.37,
+          "rss_kib": 262528
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.87,
+          "rss_kib": 39184
+        }
+      },
+      "steady_seconds": 15.003980045999924,
+      "steady_frames": 901,
+      "wall_fps": 60.05073302134972,
+      "timestamp_fps": 59.88029125614163,
+      "returncode": 255,
+      "helper_log": "10-11 14:38:52.444 13526 13551 I LinuxCamera: Packing mode: reference\n10-11 14:38:52.717 13526 13551 I LinuxCamera: Opening Linux Camera Rear 6.08mm 1920\u00d71080 @ 60\n10-11 14:38:52.945 13526 13551 I LinuxCamera: Streaming Linux Camera Rear 6.08mm @ 60 fps; native orientation\n10-11 14:39:10.985 13526 13551 I LinuxCamera: timing stream=0 generation=11 mode=reference size=1920x1080 rows=1920/1920/1920 pixels=1/2/2\n10-11 14:39:10.986 13526 13551 I LinuxCamera: timing stage=acquire count=1040 mean_ms=0.0318 p95_upper_ms=0.0640 max_ms=1.0509\n10-11 14:39:10.986 13526 13551 I LinuxCamera: timing stage=destination_map count=1039 mean_ms=0.0056 p95_upper_ms=0.0010 max_ms=1.8074\n10-11 14:39:10.986 13526 13551 I LinuxCamera: timing stage=source_access count=1039 mean_ms=0.1363 p95_upper_ms=0.2560 max_ms=1.4493\n10-11 14:39:10.987 13526 13551 I LinuxCamera: timing stage=sync_begin count=1039 mean_ms=0.0051 p95_upper_ms=0.0080 max_ms=0.2434\n10-11 14:39:10.987 13526 13551 I LinuxCamera: timing stage=pack count=1039 mean_ms=5.1749 p95_upper_ms=16.3840 max_ms=16.4001\n10-11 14:39:10.988 13526 13551 I LinuxCamera: timing stage=sync_end count=1039 mean_ms=0.0128 p95_upper_ms=0.0160 max_ms=1.0705\n10-11 14:39:10.988 13526 13551 I LinuxCamera: timing stage=complete count=1039 mean_ms=0.0186 p95_upper_ms=0.0320 max_ms=1.1426\n10-11 14:39:10.988 13526 13551 I LinuxCamera: timing stage=release count=1039 mean_ms=0.0880 p95_upper_ms=0.2560 max_ms=2.8031\n10-11 14:39:10.988 13526 13551 I LinuxCamera: Frames: 1039; drops: 1; copy mean/max: 5.20/16.41 ms; max delivery age: 64.08 ms\n10-11 14:39:11.004 13526 13551 I LinuxCamera: Ready; camera released\n",
+      "stages": {
+        "acquire": {
+          "count": 1040,
+          "mean_ms": 0.0318,
+          "p95_upper_ms": 0.064,
+          "max_ms": 1.0509
+        },
+        "destination_map": {
+          "count": 1039,
+          "mean_ms": 0.0056,
+          "p95_upper_ms": 0.001,
+          "max_ms": 1.8074
+        },
+        "source_access": {
+          "count": 1039,
+          "mean_ms": 0.1363,
+          "p95_upper_ms": 0.256,
+          "max_ms": 1.4493
+        },
+        "sync_begin": {
+          "count": 1039,
+          "mean_ms": 0.0051,
+          "p95_upper_ms": 0.008,
+          "max_ms": 0.2434
+        },
+        "pack": {
+          "count": 1039,
+          "mean_ms": 5.1749,
+          "p95_upper_ms": 16.384,
+          "max_ms": 16.4001
+        },
+        "sync_end": {
+          "count": 1039,
+          "mean_ms": 0.0128,
+          "p95_upper_ms": 0.016,
+          "max_ms": 1.0705
+        },
+        "complete": {
+          "count": 1039,
+          "mean_ms": 0.0186,
+          "p95_upper_ms": 0.032,
+          "max_ms": 1.1426
+        },
+        "release": {
+          "count": 1039,
+          "mean_ms": 0.088,
+          "p95_upper_ms": 0.256,
+          "max_ms": 2.8031
+        }
+      }
+    },
+    {
+      "name": "3840x2160-30-0-reference",
+      "packing": "reference",
+      "width": 3840,
+      "height": 2160,
+      "fps": 30,
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 49.11,
+          "rss_kib": 193504
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2728
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.06,
+          "rss_kib": 26152
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 92.76,
+          "rss_kib": 265996
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.53,
+          "rss_kib": 39208
+        }
+      },
+      "steady_seconds": 15.006676712999706,
+      "steady_frames": 448,
+      "wall_fps": 29.853378503977158,
+      "timestamp_fps": 29.981088491524954,
+      "returncode": 255,
+      "helper_log": "10-11 14:39:11.151 13526 13551 I LinuxCamera: Packing mode: reference\n10-11 14:39:11.330 13526 13551 I LinuxCamera: Opening Linux Camera Rear 6.08mm 3840\u00d72160 @ 30\n10-11 14:39:11.519 13526 13551 I LinuxCamera: Streaming Linux Camera Rear 6.08mm @ 30 fps; native orientation\n10-11 14:39:29.516 13526 13551 I LinuxCamera: timing stream=0 generation=13 mode=reference size=3840x2160 rows=3840/3840/3840 pixels=1/2/2\n10-11 14:39:29.516 13526 13551 I LinuxCamera: timing stage=acquire count=516 mean_ms=0.0358 p95_upper_ms=0.0640 max_ms=1.4793\n10-11 14:39:29.516 13526 13551 I LinuxCamera: timing stage=destination_map count=515 mean_ms=0.0203 p95_upper_ms=0.0010 max_ms=2.4959\n10-11 14:39:29.516 13526 13551 I LinuxCamera: timing stage=source_access count=515 mean_ms=0.1588 p95_upper_ms=0.5120 max_ms=2.0666\n10-11 14:39:29.516 13526 13551 I LinuxCamera: timing stage=sync_begin count=515 mean_ms=0.0071 p95_upper_ms=0.0080 max_ms=0.6141\n10-11 14:39:29.516 13526 13551 I LinuxCamera: timing stage=pack count=515 mean_ms=17.2830 p95_upper_ms=41.9056 max_ms=41.9056\n10-11 14:39:29.516 13526 13551 I LinuxCamera: timing stage=sync_end count=515 mean_ms=0.0133 p95_upper_ms=0.0160 max_ms=0.8096\n10-11 14:39:29.516 13526 13551 I LinuxCamera: timing stage=complete count=515 mean_ms=0.0192 p95_upper_ms=0.0320 max_ms=0.9128\n10-11 14:39:29.516 13526 13551 I LinuxCamera: timing stage=release count=515 mean_ms=0.0962 p95_upper_ms=0.2560 max_ms=1.2627\n10-11 14:39:29.516 13526 13551 I LinuxCamera: Frames: 515; drops: 1; copy mean/max: 17.31/41.93 ms; max delivery age: 97.44 ms\n10-11 14:39:29.534 13526 13551 I LinuxCamera: Ready; camera released\n",
+      "stages": {
+        "acquire": {
+          "count": 516,
+          "mean_ms": 0.0358,
+          "p95_upper_ms": 0.064,
+          "max_ms": 1.4793
+        },
+        "destination_map": {
+          "count": 515,
+          "mean_ms": 0.0203,
+          "p95_upper_ms": 0.001,
+          "max_ms": 2.4959
+        },
+        "source_access": {
+          "count": 515,
+          "mean_ms": 0.1588,
+          "p95_upper_ms": 0.512,
+          "max_ms": 2.0666
+        },
+        "sync_begin": {
+          "count": 515,
+          "mean_ms": 0.0071,
+          "p95_upper_ms": 0.008,
+          "max_ms": 0.6141
+        },
+        "pack": {
+          "count": 515,
+          "mean_ms": 17.283,
+          "p95_upper_ms": 41.9056,
+          "max_ms": 41.9056
+        },
+        "sync_end": {
+          "count": 515,
+          "mean_ms": 0.0133,
+          "p95_upper_ms": 0.016,
+          "max_ms": 0.8096
+        },
+        "complete": {
+          "count": 515,
+          "mean_ms": 0.0192,
+          "p95_upper_ms": 0.032,
+          "max_ms": 0.9128
+        },
+        "release": {
+          "count": 515,
+          "mean_ms": 0.0962,
+          "p95_upper_ms": 0.256,
+          "max_ms": 1.2627
+        }
+      }
+    },
+    {
+      "name": "3840x2160-30-1-fast",
+      "packing": "fast",
+      "width": 3840,
+      "height": 2160,
+      "fps": 30,
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 17.93,
+          "rss_kib": 198648
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2728
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.4,
+          "rss_kib": 26888
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 96.17,
+          "rss_kib": 252680
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.53,
+          "rss_kib": 137800
+        }
+      },
+      "steady_seconds": 15.00393051500032,
+      "steady_frames": 451,
+      "wall_fps": 30.058790231606878,
+      "timestamp_fps": 29.981088647232006,
+      "returncode": 255,
+      "helper_log": "10-11 14:39:29.605 13526 13551 I LinuxCamera: Packing mode: fast\n10-11 14:39:29.888 13526 13551 I LinuxCamera: Opening Linux Camera Rear 6.08mm 3840\u00d72160 @ 30\n10-11 14:39:30.084 13526 13551 I LinuxCamera: Streaming Linux Camera Rear 6.08mm @ 30 fps; native orientation\n10-11 14:39:48.128 13526 13551 I LinuxCamera: timing stream=0 generation=15 mode=fast size=3840x2160 rows=3840/3840/3840 pixels=1/2/2\n10-11 14:39:48.129 13526 13551 I LinuxCamera: timing stage=acquire count=518 mean_ms=0.0496 p95_upper_ms=0.1280 max_ms=1.4837\n10-11 14:39:48.129 13526 13551 I LinuxCamera: timing stage=destination_map count=518 mean_ms=0.0294 p95_upper_ms=0.0010 max_ms=3.6150\n10-11 14:39:48.129 13526 13551 I LinuxCamera: timing stage=source_access count=518 mean_ms=0.2386 p95_upper_ms=1.0240 max_ms=5.0445\n10-11 14:39:48.129 13526 13551 I LinuxCamera: timing stage=sync_begin count=518 mean_ms=0.0069 p95_upper_ms=0.0160 max_ms=0.2172\n10-11 14:39:48.129 13526 13551 I LinuxCamera: timing stage=pack count=518 mean_ms=4.9193 p95_upper_ms=16.3840 max_ms=20.6708\n10-11 14:39:48.129 13526 13551 I LinuxCamera: timing stage=sync_end count=518 mean_ms=0.0166 p95_upper_ms=0.0320 max_ms=0.5110\n10-11 14:39:48.129 13526 13551 I LinuxCamera: timing stage=complete count=518 mean_ms=0.0253 p95_upper_ms=0.0640 max_ms=0.6920\n10-11 14:39:48.129 13526 13551 I LinuxCamera: timing stage=release count=518 mean_ms=0.1199 p95_upper_ms=0.5120 max_ms=3.5985\n10-11 14:39:48.129 13526 13551 I LinuxCamera: Frames: 518; drops: 0; copy mean/max: 4.95/20.69 ms; max delivery age: 75.60 ms\n10-11 14:39:48.145 13526 13551 I LinuxCamera: Ready; camera released\n",
+      "stages": {
+        "acquire": {
+          "count": 518,
+          "mean_ms": 0.0496,
+          "p95_upper_ms": 0.128,
+          "max_ms": 1.4837
+        },
+        "destination_map": {
+          "count": 518,
+          "mean_ms": 0.0294,
+          "p95_upper_ms": 0.001,
+          "max_ms": 3.615
+        },
+        "source_access": {
+          "count": 518,
+          "mean_ms": 0.2386,
+          "p95_upper_ms": 1.024,
+          "max_ms": 5.0445
+        },
+        "sync_begin": {
+          "count": 518,
+          "mean_ms": 0.0069,
+          "p95_upper_ms": 0.016,
+          "max_ms": 0.2172
+        },
+        "pack": {
+          "count": 518,
+          "mean_ms": 4.9193,
+          "p95_upper_ms": 16.384,
+          "max_ms": 20.6708
+        },
+        "sync_end": {
+          "count": 518,
+          "mean_ms": 0.0166,
+          "p95_upper_ms": 0.032,
+          "max_ms": 0.511
+        },
+        "complete": {
+          "count": 518,
+          "mean_ms": 0.0253,
+          "p95_upper_ms": 0.064,
+          "max_ms": 0.692
+        },
+        "release": {
+          "count": 518,
+          "mean_ms": 0.1199,
+          "p95_upper_ms": 0.512,
+          "max_ms": 3.5985
+        }
+      }
+    },
+    {
+      "name": "3840x2160-30-2-reference",
+      "packing": "reference",
+      "width": 3840,
+      "height": 2160,
+      "fps": 30,
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 49.79,
+          "rss_kib": 203796
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2728
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.2,
+          "rss_kib": 28244
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 92.85,
+          "rss_kib": 248312
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.53,
+          "rss_kib": 39208
+        }
+      },
+      "steady_seconds": 15.002184733999911,
+      "steady_frames": 448,
+      "wall_fps": 29.862317252012225,
+      "timestamp_fps": 29.981088491524954,
+      "returncode": 255,
+      "helper_log": "10-11 14:39:48.215 13526 13551 I LinuxCamera: Packing mode: reference\n10-11 14:39:48.488 13526 13551 I LinuxCamera: Opening Linux Camera Rear 6.08mm 3840\u00d72160 @ 30\n10-11 14:39:48.669 13526 13551 I LinuxCamera: Streaming Linux Camera Rear 6.08mm @ 30 fps; native orientation\n10-11 14:40:06.678 13526 13551 I LinuxCamera: timing stream=0 generation=17 mode=reference size=3840x2160 rows=3840/3840/3840 pixels=1/2/2\n10-11 14:40:06.678 13526 13551 I LinuxCamera: timing stage=acquire count=516 mean_ms=0.0333 p95_upper_ms=0.0640 max_ms=0.5020\n10-11 14:40:06.678 13526 13551 I LinuxCamera: timing stage=destination_map count=515 mean_ms=0.0213 p95_upper_ms=0.0010 max_ms=3.6064\n10-11 14:40:06.678 13526 13551 I LinuxCamera: timing stage=source_access count=515 mean_ms=0.1610 p95_upper_ms=0.5120 max_ms=2.3762\n10-11 14:40:06.678 13526 13551 I LinuxCamera: timing stage=sync_begin count=515 mean_ms=0.0061 p95_upper_ms=0.0080 max_ms=0.5769\n10-11 14:40:06.678 13526 13551 I LinuxCamera: timing stage=pack count=515 mean_ms=17.2469 p95_upper_ms=41.7556 max_ms=41.7556\n10-11 14:40:06.678 13526 13551 I LinuxCamera: timing stage=sync_end count=515 mean_ms=0.0153 p95_upper_ms=0.0160 max_ms=0.9043\n10-11 14:40:06.678 13526 13551 I LinuxCamera: timing stage=complete count=515 mean_ms=0.0185 p95_upper_ms=0.0320 max_ms=0.8020\n10-11 14:40:06.678 13526 13551 I LinuxCamera: timing stage=release count=515 mean_ms=0.1027 p95_upper_ms=0.2560 max_ms=1.5396\n10-11 14:40:06.679 13526 13551 I LinuxCamera: Frames: 515; drops: 1; copy mean/max: 17.27/41.77 ms; max delivery age: 104.35 ms\n10-11 14:40:06.696 13526 13551 I LinuxCamera: Ready; camera released\n",
+      "stages": {
+        "acquire": {
+          "count": 516,
+          "mean_ms": 0.0333,
+          "p95_upper_ms": 0.064,
+          "max_ms": 0.502
+        },
+        "destination_map": {
+          "count": 515,
+          "mean_ms": 0.0213,
+          "p95_upper_ms": 0.001,
+          "max_ms": 3.6064
+        },
+        "source_access": {
+          "count": 515,
+          "mean_ms": 0.161,
+          "p95_upper_ms": 0.512,
+          "max_ms": 2.3762
+        },
+        "sync_begin": {
+          "count": 515,
+          "mean_ms": 0.0061,
+          "p95_upper_ms": 0.008,
+          "max_ms": 0.5769
+        },
+        "pack": {
+          "count": 515,
+          "mean_ms": 17.2469,
+          "p95_upper_ms": 41.7556,
+          "max_ms": 41.7556
+        },
+        "sync_end": {
+          "count": 515,
+          "mean_ms": 0.0153,
+          "p95_upper_ms": 0.016,
+          "max_ms": 0.9043
+        },
+        "complete": {
+          "count": 515,
+          "mean_ms": 0.0185,
+          "p95_upper_ms": 0.032,
+          "max_ms": 0.802
+        },
+        "release": {
+          "count": 515,
+          "mean_ms": 0.1027,
+          "p95_upper_ms": 0.256,
+          "max_ms": 1.5396
+        }
+      }
+    }
+  ]
+}

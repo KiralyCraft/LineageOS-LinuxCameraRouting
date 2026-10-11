@@ -3,13 +3,15 @@
 Android Camera2 capture exposed to the same device's Linux chroot as ordinary
 V4L2 webcams. Source: https://github.com/KiralyCraft/LineageOS-LinuxCameraRouting.
 
-## Current release: 0.1.4, first device-test candidate
+## Current release: 0.1.5, fast packing enabled
 
-The kernel module's synthetic lifecycle tests and 48 V4L2 API compliance tests
-have passed on the Xperia XQ-DQ72. Helper startup and camera registration now pass with SELinux enforcing.
-Actual camera capture, physical-lens selection, application interoperability,
-screen-off capture and high-rate performance remain to be qualified. Supported-mode metadata is not a measured
-frame-rate result. See `diagnostics/VALIDATION.md` for the exact tested boundary.
+The Xperia XQ-DQ72 passes synthetic buffer-lifecycle tests and 48 V4L2 API
+compliance tests with SELinux enforcing. All four lenses produced visually
+verified 720p frames. Main-camera stream-copy measurements cover 1080p30,
+1080p60 and 4K30, including screen-dozing operation. The optimized packer reduces
+helper CPU use by approximately 57–64% in matched live comparisons. This is not
+qualification of every advertised mode, autofocus, or Firefox/OBS integration.
+See `diagnostics/VALIDATION.md` and `diagnostics/PACKING-LIVE-20261011.md`.
 
 ## Architecture
 
@@ -46,14 +48,14 @@ counted. Such frame drops differ from compression or changing pixel samples.
 
 ## Installation and startup
 
-1. Install `LinuxCameraRouting-0.1.4.zip` through Magisk, then reboot. It is pinned
+1. Install `LinuxCameraRouting-0.1.5.zip` through Magisk, then reboot. It is pinned
    to kernel `5.15.176-gd00ba216ccda`; a mismatched kernel is refused.
-2. Install `LinuxCamera-0.1.4.apk` manually. Grant camera permission, open the app,
+2. Install `LinuxCamera-0.1.5.apk` manually. Grant camera permission, open the app,
    and tap **Enable Linux cameras**.
 3. In Linux, optionally run `./install-linux.sh` to install `linux-cameractl`.
    Select a Linux Camera entry in Firefox, OBS or another V4L2 application.
 
-Version 0.1.3 and later use protocol v2; 0.1.4 APK works with the 0.1.3 module.
+Version 0.1.3 and later use protocol v2; 0.1.5 APK works with the 0.1.3 module.
 The first color fix requires a matched APK, broker and kernel module;
 older producers are rejected rather than interpreted with the wrong colors.
 The module boots the broker independently of APK installation. The helper must
@@ -100,9 +102,10 @@ control layer. The frame path, broker, and kernel module are C.
 Kernel module code is GPL-2.0-only. The kernel's public APIs and exported memory
 operations are reused; no Qualcomm camera module is replaced or intercepted.
 
-## Packing investigation (0.1.4)
+## Packing and diagnostics
 
-The diagnostic APK starts with the reference packer. It adds per-stream stage
+Version 0.1.5 starts with the validated fast packer (0.1.4 defaulted to the
+reference implementation). It retains per-stream stage
 summaries (mean, histogram p95 upper bound, maximum) for acquisition, destination
 mapping, source access, DMA-BUF sync start, packing, sync end, completion and
 source release. Only stream-stop summaries are logged, never per-frame output.

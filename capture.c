@@ -320,6 +320,7 @@ JNIEXPORT jlong JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_connect(JNIEnv 
 		_capture_throw(__env, "Camera allocation failed");
 		return 0;
 	}
+	_capture->fast_packing = 1;
 	const char *_stage = "create broker socket";
 	_capture->broker = socket(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0);
 	_capture->control = -1;
