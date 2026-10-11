@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include "include/camera_uapi.h"
 #include "include/packing.h"
+#include "include/metrics.h"
 #include <android/native_window_jni.h>
 #include <android/data_space.h>
 #include <android/hardware_buffer.h>
@@ -33,6 +34,19 @@ typedef struct
 	size_t size;
 } capture_mapping_t;
 
+enum
+{
+	CAPTURE_ACQUIRE,
+	CAPTURE_DESTINATION_MAP,
+	CAPTURE_SOURCE_ACCESS,
+	CAPTURE_SYNC_BEGIN,
+	CAPTURE_PACK,
+	CAPTURE_SYNC_END,
+	CAPTURE_COMPLETE,
+	CAPTURE_RELEASE,
+	CAPTURE_STAGES
+};
+
 typedef struct
 {
 	JavaVM *vm;
@@ -55,6 +69,10 @@ typedef struct
 	uint64_t copy_ns;
 	uint64_t max_copy_ns;
 	uint64_t max_age_ns;
+	int32_t fast_packing;
+	metrics_t stages[CAPTURE_STAGES];
+	uint32_t source_row[3];
+	uint32_t source_pixel[3];
 } capture_t;
 
 static void _capture_throw(JNIEnv *__env, const char *__message)
@@ -118,12 +136,14 @@ static void _capture_image(void *__context, AImageReader *__reader)
 		pthread_mutex_unlock(&_capture->mutex);
 		return;
 	}
+	uint64_t _acquireBegin = _capture_clock(CLOCK_MONOTONIC);
 	AImage *_image = NULL;
 	if (AImageReader_acquireLatestImage(__reader, &_image) != AMEDIA_OK)
 	{
 		pthread_mutex_unlock(&_capture->mutex);
 		return;
 	}
+	metrics_record(&_capture->stages[CAPTURE_ACQUIRE], _capture_clock(CLOCK_MONOTONIC) - _acquireBegin);
 	struct camera_buffer _buffer = {
 		.camera = _capture->current.index,
 		.generation = _capture->current.generation,
@@ -135,7 +155,10 @@ static void _capture_image(void *__context, AImageReader *__reader)
 		pthread_mutex_unlock(&_capture->mutex);
 		return;
 	}
+	uint64_t _mapBegin = _capture_clock(CLOCK_MONOTONIC);
 	int32_t _result = _capture_map(_capture, &_buffer);
+	metrics_record(&_capture->stages[CAPTURE_DESTINATION_MAP], _capture_clock(CLOCK_MONOTONIC) - _mapBegin);
+	uint64_t _sourceBegin = _capture_clock(CLOCK_MONOTONIC);
 	packing_t _planes[3] = {0};
 	AImageCropRect _crop;
 	int64_t _timestamp = 0;
@@ -161,7 +184,10 @@ static void _capture_image(void *__context, AImageReader *__reader)
 			break;
 		}
 		_planes[_i] = (packing_t){_data, (size_t)_length, (uint32_t)_row, (uint32_t)_pixel};
+		_capture->source_row[_i] = _row;
+		_capture->source_pixel[_i] = _pixel;
 	}
+	metrics_record(&_capture->stages[CAPTURE_SOURCE_ACCESS], _capture_clock(CLOCK_MONOTONIC) - _sourceBegin);
 	uint64_t _begin = _capture_clock(CLOCK_MONOTONIC);
 	if (!_result && (_crop.right - _crop.left != (int32_t)_capture->current.mode.width || _crop.bottom - _crop.top != (int32_t)_capture->current.mode.height))
 	{
@@ -171,15 +197,28 @@ static void _capture_image(void *__context, AImageReader *__reader)
 	{
 		struct dma_buf_sync _sync = {.flags = DMA_BUF_SYNC_START | DMA_BUF_SYNC_WRITE};
 		capture_mapping_t *_mapping = &_capture->mappings[_buffer.index];
+		uint64_t _syncBegin = _capture_clock(CLOCK_MONOTONIC);
 		_result = ioctl(_mapping->descriptor, DMA_BUF_IOCTL_SYNC, &_sync);
+		metrics_record(&_capture->stages[CAPTURE_SYNC_BEGIN], _capture_clock(CLOCK_MONOTONIC) - _syncBegin);
 		if (!_result)
 		{
-			_result = packing_i420(_mapping->address, _mapping->size, _planes, _crop.left, _crop.top, _capture->current.mode.width, _capture->current.mode.height);
+			uint64_t _packBegin = _capture_clock(CLOCK_MONOTONIC);
+			if (_capture->fast_packing)
+			{
+				_result = packing_i420(_mapping->address, _mapping->size, _planes, _crop.left, _crop.top, _capture->current.mode.width, _capture->current.mode.height);
+			}
+			else
+			{
+				_result = packing_i420_reference(_mapping->address, _mapping->size, _planes, _crop.left, _crop.top, _capture->current.mode.width, _capture->current.mode.height);
+			}
+			metrics_record(&_capture->stages[CAPTURE_PACK], _capture_clock(CLOCK_MONOTONIC) - _packBegin);
+			uint64_t _syncEnd = _capture_clock(CLOCK_MONOTONIC);
 			_sync.flags = DMA_BUF_SYNC_END | DMA_BUF_SYNC_WRITE;
 			if (ioctl(_mapping->descriptor, DMA_BUF_IOCTL_SYNC, &_sync))
 			{
 				_result = -1;
 			}
+			metrics_record(&_capture->stages[CAPTURE_SYNC_END], _capture_clock(CLOCK_MONOTONIC) - _syncEnd);
 		}
 	}
 	uint64_t _end = _capture_clock(CLOCK_MONOTONIC);
@@ -194,6 +233,7 @@ static void _capture_image(void *__context, AImageReader *__reader)
 	{
 		_buffer.timestamp_ns = _end - (_boot - _timestamp);
 	}
+	uint64_t _completeBegin = _capture_clock(CLOCK_MONOTONIC);
 	if (!_result && ioctl(_capture->control, CAMERA_COMPLETE, &_buffer) == 0)
 	{
 		_capture->frames++;
@@ -211,7 +251,10 @@ static void _capture_image(void *__context, AImageReader *__reader)
 	{
 		_capture_fail(_capture, EIO);
 	}
+	metrics_record(&_capture->stages[CAPTURE_COMPLETE], _capture_clock(CLOCK_MONOTONIC) - _completeBegin);
+	uint64_t _releaseBegin = _capture_clock(CLOCK_MONOTONIC);
 	AImage_delete(_image);
+	metrics_record(&_capture->stages[CAPTURE_RELEASE], _capture_clock(CLOCK_MONOTONIC) - _releaseBegin);
 	pthread_mutex_unlock(&_capture->mutex);
 }
 
@@ -421,6 +464,23 @@ JNIEXPORT void JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_listen(JNIEnv *_
 	_capture->started = 1;
 }
 
+/* Diagnostic control through the non-exported service. Changes are accepted
+ * only between capture generations, never midway through a frame. */
+JNIEXPORT void JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_setPackingMode(JNIEnv *__env, jclass __class, jlong __handle, jboolean __fast)
+{
+	(void)__class;
+	capture_t *_capture = (capture_t *)(intptr_t)__handle;
+	pthread_mutex_lock(&_capture->mutex);
+	if (_capture->reader)
+	{
+		pthread_mutex_unlock(&_capture->mutex);
+		_capture_throw(__env, "Stop capture before changing packing mode");
+		return;
+	}
+	_capture->fast_packing = __fast;
+	pthread_mutex_unlock(&_capture->mutex);
+}
+
 JNIEXPORT jobject JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_surface(JNIEnv *__env, jclass __class, jlong __handle, jint __index, jlong __generation, jint __width, jint __height)
 {
 	(void)__class;
@@ -434,6 +494,14 @@ JNIEXPORT jobject JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_surface(JNIEn
 		return NULL;
 	}
 	_capture->current = _state;
+	_capture->frames = 0;
+	_capture->drops = 0;
+	_capture->copy_ns = 0;
+	_capture->max_copy_ns = 0;
+	_capture->max_age_ns = 0;
+	memset(_capture->stages, 0, sizeof(_capture->stages));
+	memset(_capture->source_row, 0, sizeof(_capture->source_row));
+	memset(_capture->source_pixel, 0, sizeof(_capture->source_pixel));
 	AImageReader_ImageListener _listener = {_capture, _capture_image};
 	AImageReader_setImageListener(_capture->reader, &_listener);
 	ANativeWindow *_window = NULL;
@@ -498,6 +566,23 @@ JNIEXPORT jstring JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_statistics(JN
 	if (_capture->frames)
 	{
 		_mean = _capture->copy_ns / (double)_capture->frames / 1000000.0;
+	}
+	const char *_stageNames[] = {"acquire", "destination_map", "source_access", "sync_begin", "pack", "sync_end", "complete", "release"};
+	const char *_mode = "reference";
+	if (_capture->fast_packing)
+	{
+		_mode = "fast";
+	}
+	__android_log_print(ANDROID_LOG_INFO, "LinuxCamera", "timing stream=%u generation=%llu mode=%s size=%ux%u rows=%u/%u/%u pixels=%u/%u/%u", _capture->current.index, (unsigned long long)_capture->current.generation, _mode, _capture->current.mode.width, _capture->current.mode.height, _capture->source_row[0], _capture->source_row[1], _capture->source_row[2], _capture->source_pixel[0], _capture->source_pixel[1], _capture->source_pixel[2]);
+	for (uint32_t _i = 0; _i < CAPTURE_STAGES; ++_i)
+	{
+		const metrics_t *_metric = &_capture->stages[_i];
+		double _stageMean = 0;
+		if (_metric->count)
+		{
+			_stageMean = _metric->total_ns / (double)_metric->count / 1000000.0;
+		}
+		__android_log_print(ANDROID_LOG_INFO, "LinuxCamera", "timing stage=%s count=%llu mean_ms=%.4f p95_upper_ms=%.4f max_ms=%.4f", _stageNames[_i], (unsigned long long)_metric->count, _stageMean, metrics_p95_upper_ns(_metric) / 1000000.0, _metric->maximum_ns / 1000000.0);
 	}
 	snprintf(_status, sizeof(_status), "Frames: %llu; drops: %llu; copy mean/max: %.2f/%.2f ms; max delivery age: %.2f ms", (unsigned long long)_capture->frames, (unsigned long long)_capture->drops, _mean, _capture->max_copy_ns / 1000000.0, _capture->max_age_ns / 1000000.0);
 	pthread_mutex_unlock(&_capture->mutex);

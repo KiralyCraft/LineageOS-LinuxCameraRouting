@@ -1,0 +1,4 @@
+PASS 224 guarded packing cases: NV12/NV21, planar, generic stride, crops, tails, independent exact pixels; timing histogram
+{"width":1280,"height":720,"samples_each":64,"reference_ms":1.0203,"fast_ms":0.1374,"reference_cpu_ms":1.0051,"fast_cpu_ms":0.1350}
+{"width":1920,"height":1080,"samples_each":64,"reference_ms":2.2844,"fast_ms":0.3287,"reference_cpu_ms":2.2609,"fast_cpu_ms":0.3241}
+{"width":3840,"height":2160,"samples_each":64,"reference_ms":9.1187,"fast_ms":1.2888,"reference_cpu_ms":9.0329,"fast_cpu_ms":1.2721}

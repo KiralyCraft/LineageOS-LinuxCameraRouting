@@ -3,7 +3,7 @@
 Android Camera2 capture exposed to the same device's Linux chroot as ordinary
 V4L2 webcams. Source: https://github.com/KiralyCraft/LineageOS-LinuxCameraRouting.
 
-## Current release: 0.1.3, first device-test candidate
+## Current release: 0.1.4, first device-test candidate
 
 The kernel module's synthetic lifecycle tests and 48 V4L2 API compliance tests
 have passed on the Xperia XQ-DQ72. Helper startup and camera registration now pass with SELinux enforcing.
@@ -46,14 +46,15 @@ counted. Such frame drops differ from compression or changing pixel samples.
 
 ## Installation and startup
 
-1. Install `LinuxCameraRouting-0.1.3.zip` through Magisk, then reboot. It is pinned
+1. Install `LinuxCameraRouting-0.1.4.zip` through Magisk, then reboot. It is pinned
    to kernel `5.15.176-gd00ba216ccda`; a mismatched kernel is refused.
-2. Install `LinuxCamera-0.1.3.apk` manually. Grant camera permission, open the app,
+2. Install `LinuxCamera-0.1.4.apk` manually. Grant camera permission, open the app,
    and tap **Enable Linux cameras**.
 3. In Linux, optionally run `./install-linux.sh` to install `linux-cameractl`.
    Select a Linux Camera entry in Firefox, OBS or another V4L2 application.
 
-Version 0.1.3 requires its matched APK, broker and kernel module (protocol v2);
+Version 0.1.3 and later use protocol v2; 0.1.4 APK works with the 0.1.3 module.
+The first color fix requires a matched APK, broker and kernel module;
 older producers are rejected rather than interpreted with the wrong colors.
 The module boots the broker independently of APK installation. The helper must
 be enabled from Android after a reboot. Enabling it registers devices but leaves
@@ -98,3 +99,30 @@ control layer. The frame path, broker, and kernel module are C.
 
 Kernel module code is GPL-2.0-only. The kernel's public APIs and exported memory
 operations are reused; no Qualcomm camera module is replaced or intercepted.
+
+## Packing investigation (0.1.4)
+
+The diagnostic APK starts with the reference packer. It adds per-stream stage
+summaries (mean, histogram p95 upper bound, maximum) for acquisition, destination
+mapping, source access, DMA-BUF sync start, packing, sync end, completion and
+source release. Only stream-stop summaries are logged, never per-frame output.
+The counters reset per stream. Source access may itself include HAL cache work;
+source image acquisition may wait for its readiness fence.
+
+The candidate packs adjacent interleaved chroma planes with AArch64 NEON in one
+pass, handles the exact scalar tail and retains the generic fallback. Planar
+contiguous rows use memcpy without changing samples. All source bounds are
+validated before any destination write. The protocol, pixel values, layout,
+color interpretation, buffer ownership and fences remain unchanged.
+
+For controlled testing, Android root can switch the existing idle helper:
+
+```sh
+am startservice -n dev.kiraly.linuxcamera/.CameraService --es packing_mode fast
+am startservice -n dev.kiraly.linuxcamera/.CameraService --es packing_mode reference
+```
+
+This is a private diagnostic service control, not an exported app interface.
+The helper must already be enabled; changes during capture are rejected. Mode
+selection lasts until the helper stops. Confirm `Packing mode:` in logcat before
+starting the next capture. The installed 0.1.3 module needs no update for this APK.

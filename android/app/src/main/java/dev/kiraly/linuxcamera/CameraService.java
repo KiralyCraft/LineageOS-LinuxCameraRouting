@@ -71,8 +71,27 @@ public final class CameraService extends Service
 		}
 		startForeground(1, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA);
 		handler.post(() -> {
-			if (nativeHandle != 0 || shuttingDown)
+			if (shuttingDown)
 				return;
+			if (nativeHandle != 0)
+			{
+				if (intent != null && intent.hasExtra("packing_mode"))
+				{
+					String mode = intent.getStringExtra("packing_mode");
+					try
+					{
+						if (!"fast".equals(mode) && !"reference".equals(mode))
+							throw new IllegalArgumentException("Unknown packing mode");
+						NativeCamera.setPackingMode(nativeHandle, "fast".equals(mode));
+						android.util.Log.i("LinuxCamera", "Packing mode: " + mode);
+					}
+					catch (Exception failure)
+					{
+						android.util.Log.w("LinuxCamera", "Packing mode unchanged: " + failure.getMessage());
+					}
+				}
+				return;
+			}
 			try
 			{
 				report("Starting…");

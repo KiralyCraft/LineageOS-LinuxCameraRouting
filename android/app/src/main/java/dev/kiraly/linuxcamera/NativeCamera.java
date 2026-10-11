@@ -11,6 +11,7 @@ final class NativeCamera
 	}
 	static native long connect(CameraService service) throws IOException;
 	static native int registerCamera(long handle, String name, String identifier, int[] modes) throws IOException;
+	static native void setPackingMode(long handle, boolean fast) throws IOException;
 	static native void listen(long handle) throws IOException;
 	static native Surface surface(long handle, int index, long generation, int width, int height) throws IOException;
 	static native void retire(long handle, int index, long generation);

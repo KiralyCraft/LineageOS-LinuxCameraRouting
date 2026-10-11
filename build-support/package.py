@@ -18,7 +18,7 @@ shutil.copytree(source / 'module', module, dirs_exist_ok=True)
 (module / 'kmod').mkdir(exist_ok=True)
 shutil.copy2(build / 'native/linux-camerad', module / 'bin/linux-camerad')
 shutil.copy2(build / 'kmod/kernel/linux_camera.ko', module / 'kmod/linux_camera.ko')
-shutil.copy2(build / 'android/LinuxCamera-0.1.3.apk', output / 'LinuxCamera-0.1.3.apk')
+shutil.copy2(build / 'android/LinuxCamera-0.1.4.apk', output / 'LinuxCamera-0.1.4.apk')
 for name in ['README.md', 'PROTOCOL.md', 'linux-cameractl', 'install-linux.sh']:
     shutil.copy2(source / name, output / name)
 (output / 'tests').mkdir(exist_ok=True)
@@ -26,12 +26,15 @@ shutil.copy2(build / 'native/camera-lifecycle-test', output / 'tests/camera-life
 shutil.copy2(build / 'native/camera-measure', output / 'tests/camera-measure')
 shutil.copytree(source / 'diagnostics', output / 'validation', dirs_exist_ok=True)
 shutil.copy2(build / 'tests/packing.log', output / 'validation/packing.log')
+shutil.copy2(build / 'tests/packing-equivalence.log', output / 'validation/packing-equivalence.log')
+for name in ['packing-equivalence', 'packing-benchmark']:
+    shutil.copy2(build / 'native' / name, output / 'tests' / name)
 shutil.copy2(build / 'android/verification.txt', output / 'validation/apk-signature.txt')
 kernel = pathlib.Path('/bigdata/hdmi-los-build/work/companion-probe-20261005/kernel-output')
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 manifest = {
-    'version': '0.1.3',
+    'version': '0.1.4',
     'stage': 'synthetic validated; real camera qualification pending',
     'source_commit': subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip(),
     'kernel_release': '5.15.176-gd00ba216ccda',
@@ -45,10 +48,10 @@ manifest = {
 }
 (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
 shutil.copy2(output / 'manifest.json', module / 'manifest.json')
-with zipfile.ZipFile(output / 'LinuxCameraRouting-0.1.3.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+with zipfile.ZipFile(output / 'LinuxCameraRouting-0.1.4.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
     for path in sorted(module.rglob('*')):
         if path.is_file(): archive.write(path, path.relative_to(module))
-for name in ['install-linux.sh', 'linux-cameractl', 'tests/camera-lifecycle-test', 'tests/camera-measure']:
+for name in ['install-linux.sh', 'linux-cameractl', 'tests/camera-lifecycle-test', 'tests/camera-measure', 'tests/packing-equivalence', 'tests/packing-benchmark']:
     (output / name).chmod(0o755)
 (output / 'SHA256SUMS').write_text(''.join(digest(p) + '  ' + str(p.relative_to(output)) + '\n' for p in sorted(output.rglob('*')) if p.is_file() and p.name != 'SHA256SUMS'))
 print(output)
