@@ -1,0 +1,428 @@
+{
+  "baseline": {
+    "helper": {
+      "cpu_percent_one_core": 0.0,
+      "rss_kib": 143960
+    },
+    "broker": {
+      "cpu_percent_one_core": 0.0,
+      "rss_kib": 3188
+    },
+    "cameraserver": {
+      "cpu_percent_one_core": 0.0,
+      "rss_kib": 25024
+    },
+    "camera_provider": {
+      "cpu_percent_one_core": 0.0,
+      "rss_kib": 311844
+    }
+  },
+  "tests": [
+    {
+      "name": "rear-2-1280x720-30",
+      "command": [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-nostats",
+        "-stats_period",
+        "0.1",
+        "-progress",
+        "pipe:1",
+        "-f",
+        "v4l2",
+        "-input_format",
+        "yuv420p",
+        "-video_size",
+        "1280x720",
+        "-framerate",
+        "30",
+        "-i",
+        "/dev/linux-camera/rear-2",
+        "-map",
+        "0:v:0",
+        "-c:v",
+        "copy",
+        "-f",
+        "null",
+        "/dev/null"
+      ],
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 16.5,
+          "rss_kib": 153956
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2800
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.22,
+          "rss_kib": 31760
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 91.38,
+          "rss_kib": 500280
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.5,
+          "rss_kib": 50716
+        }
+      },
+      "steady_seconds": 18.002,
+      "steady_frames": 543,
+      "wall_fps": 30.163,
+      "timestamp_fps": 29.981,
+      "raw_MB_s": 41.7,
+      "returncode": 255
+    },
+    {
+      "name": "rear-2-1920x1080-30",
+      "command": [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-nostats",
+        "-stats_period",
+        "0.1",
+        "-progress",
+        "pipe:1",
+        "-f",
+        "v4l2",
+        "-input_format",
+        "yuv420p",
+        "-video_size",
+        "1920x1080",
+        "-framerate",
+        "30",
+        "-i",
+        "/dev/linux-camera/rear-2",
+        "-map",
+        "0:v:0",
+        "-c:v",
+        "copy",
+        "-f",
+        "null",
+        "/dev/null"
+      ],
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 22.49,
+          "rss_kib": 159696
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2800
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.5,
+          "rss_kib": 32700
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 89.76,
+          "rss_kib": 500484
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.39,
+          "rss_kib": 38780
+        }
+      },
+      "steady_seconds": 18.004,
+      "steady_frames": 542,
+      "wall_fps": 30.104,
+      "timestamp_fps": 29.981,
+      "raw_MB_s": 93.64,
+      "returncode": 255
+    },
+    {
+      "name": "rear-2-1920x1080-60",
+      "command": [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-nostats",
+        "-stats_period",
+        "0.1",
+        "-progress",
+        "pipe:1",
+        "-f",
+        "v4l2",
+        "-input_format",
+        "yuv420p",
+        "-video_size",
+        "1920x1080",
+        "-framerate",
+        "60",
+        "-i",
+        "/dev/linux-camera/rear-2",
+        "-map",
+        "0:v:0",
+        "-c:v",
+        "copy",
+        "-f",
+        "null",
+        "/dev/null"
+      ],
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 34.99,
+          "rss_kib": 171912
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2800
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 11.72,
+          "rss_kib": 33992
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 126.53,
+          "rss_kib": 500524
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.83,
+          "rss_kib": 38780
+        }
+      },
+      "steady_seconds": 18.004,
+      "steady_frames": 1078,
+      "wall_fps": 59.876,
+      "timestamp_fps": 59.947,
+      "raw_MB_s": 186.24,
+      "returncode": 255
+    },
+    {
+      "name": "rear-2-3840x2160-30",
+      "command": [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-nostats",
+        "-stats_period",
+        "0.1",
+        "-progress",
+        "pipe:1",
+        "-f",
+        "v4l2",
+        "-input_format",
+        "yuv420p",
+        "-video_size",
+        "3840x2160",
+        "-framerate",
+        "30",
+        "-i",
+        "/dev/linux-camera/rear-2",
+        "-map",
+        "0:v:0",
+        "-c:v",
+        "copy",
+        "-f",
+        "null",
+        "/dev/null"
+      ],
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 43.21,
+          "rss_kib": 177872
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2800
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.22,
+          "rss_kib": 35032
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 89.42,
+          "rss_kib": 500956
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.44,
+          "rss_kib": 38564
+        }
+      },
+      "steady_seconds": 18.006,
+      "steady_frames": 540,
+      "wall_fps": 29.99,
+      "timestamp_fps": 29.981,
+      "raw_MB_s": 373.13,
+      "returncode": 255
+    },
+    {
+      "name": "rear-3-1920x1080-30",
+      "command": [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-nostats",
+        "-stats_period",
+        "0.1",
+        "-progress",
+        "pipe:1",
+        "-f",
+        "v4l2",
+        "-input_format",
+        "yuv420p",
+        "-video_size",
+        "1920x1080",
+        "-framerate",
+        "30",
+        "-i",
+        "/dev/linux-camera/rear-3",
+        "-map",
+        "0:v:0",
+        "-c:v",
+        "copy",
+        "-f",
+        "null",
+        "/dev/null"
+      ],
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 22.38,
+          "rss_kib": 183864
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2800
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.33,
+          "rss_kib": 36264
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 101.14,
+          "rss_kib": 505840
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.56,
+          "rss_kib": 38544
+        }
+      },
+      "steady_seconds": 18.004,
+      "steady_frames": 539,
+      "wall_fps": 29.938,
+      "timestamp_fps": 29.974,
+      "raw_MB_s": 93.12,
+      "returncode": 255
+    },
+    {
+      "name": "rear-4-1920x1080-30",
+      "command": [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-nostats",
+        "-stats_period",
+        "0.1",
+        "-progress",
+        "pipe:1",
+        "-f",
+        "v4l2",
+        "-input_format",
+        "yuv420p",
+        "-video_size",
+        "1920x1080",
+        "-framerate",
+        "30",
+        "-i",
+        "/dev/linux-camera/rear-4",
+        "-map",
+        "0:v:0",
+        "-c:v",
+        "copy",
+        "-f",
+        "null",
+        "/dev/null"
+      ],
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 22.44,
+          "rss_kib": 189376
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2796
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.33,
+          "rss_kib": 37372
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 86.92,
+          "rss_kib": 497400
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.44,
+          "rss_kib": 38564
+        }
+      },
+      "steady_seconds": 18.005,
+      "steady_frames": 538,
+      "wall_fps": 29.88,
+      "timestamp_fps": 29.966,
+      "raw_MB_s": 92.94,
+      "returncode": 255
+    },
+    {
+      "name": "front-1-1920x1080-30",
+      "command": [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostdin",
+        "-nostats",
+        "-stats_period",
+        "0.1",
+        "-progress",
+        "pipe:1",
+        "-f",
+        "v4l2",
+        "-input_format",
+        "yuv420p",
+        "-video_size",
+        "1920x1080",
+        "-framerate",
+        "30",
+        "-i",
+        "/dev/linux-camera/front-1",
+        "-map",
+        "0:v:0",
+        "-c:v",
+        "copy",
+        "-f",
+        "null",
+        "/dev/null"
+      ],
+      "cpu": {
+        "helper": {
+          "cpu_percent_one_core": 23.21,
+          "rss_kib": 195940
+        },
+        "broker": {
+          "cpu_percent_one_core": 0.0,
+          "rss_kib": 2796
+        },
+        "cameraserver": {
+          "cpu_percent_one_core": 7.33,
+          "rss_kib": 37760
+        },
+        "camera_provider": {
+          "cpu_percent_one_core": 78.24,
+          "rss_kib": 493924
+        },
+        "ffmpeg": {
+          "cpu_percent_one_core": 1.44,
+          "rss_kib": 38556
+        }
+      },
+      "steady_seconds": 18.009,
+      "steady_frames": 542,
+      "wall_fps": 30.096,
+      "timestamp_fps": 29.969,
+      "raw_MB_s": 93.61,
+      "returncode": 255
+    }
+  ]
+}
