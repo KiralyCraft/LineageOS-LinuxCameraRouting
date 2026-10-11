@@ -78,3 +78,13 @@ idle-only diagnostic override. The new APK requires manual installation and
 Enable Linux cameras. Existing 0.1.3 Magisk module remains compatible; no module
 installation or reboot is required. The 0.1.5 binary is build-validated separately;
 the live comparisons above were performed with manually installed 0.1.4.
+
+## Installed 0.1.5 verification
+
+After the user installed and enabled APK 0.1.5 (versionCode 6), a fresh helper
+process captured 180 main-camera frames at 1080p30 to FFmpeg stream-copy/null,
+exiting normally. No diagnostic packing override was sent. Native retirement
+reported `mode=fast`, 181 completed producer frames, zero no-buffer drops, mean
+packing 1.0355 ms, and clean return to Ready. Camera service then reported no
+active clients. The extra producer frame was not requested by the 180-frame
+consumer. The helper remains enabled and idle; all four camera aliases exist.
