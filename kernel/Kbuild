@@ -1,0 +1,3 @@
+obj-m += linux_camera.o
+linux_camera-y := camera.o video.o
+ccflags-y += -I$(src)/../include -std=gnu99 -Wno-declaration-after-statement

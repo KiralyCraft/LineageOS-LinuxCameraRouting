@@ -1,0 +1,14 @@
+# Only the root broker can open this control device. Its descriptor is handed
+# to the exact installed helper UID after SO_PEERCRED verification.
+type linux_camera_device dev_type
+allow magisk linux_camera_device chr_file { open read write ioctl getattr }
+allow untrusted_app magisk unix_stream_socket connectto
+allow untrusted_app magisk unix_stream_socket { read write getattr getopt setopt shutdown }
+allow untrusted_app magisk fd use
+allow untrusted_app linux_camera_device chr_file { read write ioctl getattr }
+allowxperm untrusted_app linux_camera_device chr_file ioctl { 0x4b40 0x4b41 0x4b42 0x4b43 0x4b44 0x4b45 0x4b46 0x4b47 }
+allow untrusted_app_32 magisk unix_stream_socket connectto
+allow untrusted_app_32 magisk unix_stream_socket { read write getattr getopt setopt shutdown }
+allow untrusted_app_32 magisk fd use
+allow untrusted_app_32 linux_camera_device chr_file { read write ioctl getattr }
+allowxperm untrusted_app_32 linux_camera_device chr_file ioctl { 0x4b40 0x4b41 0x4b42 0x4b43 0x4b44 0x4b45 0x4b46 0x4b47 }

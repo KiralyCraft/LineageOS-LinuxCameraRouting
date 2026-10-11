@@ -1,0 +1,6 @@
+build/
+*.ko
+*.o
+*.apk
+*.zip
+__pycache__/

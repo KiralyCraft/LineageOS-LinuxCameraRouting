@@ -1,0 +1,1 @@
+PASS synthetic: exact patterns, DMA-BUF sharing, exclusive ownership, held buffers, stale epochs, cancellation, restart, producer death
