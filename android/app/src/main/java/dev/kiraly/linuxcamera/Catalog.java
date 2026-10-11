@@ -67,6 +67,12 @@ final class Catalog
 
 	private static void add(List<Entry> entries, String camera, String physical, CameraCharacteristics info, String name, String identifier)
 	{
+		// Physical lenses can also appear in the public camera list. Publish each
+		// stable endpoint once instead of overwriting its broker alias.
+		String endpoint = identifier.replaceAll("[^a-z0-9-]", "-");
+		for (Entry existing : entries)
+			if (existing.identifier.equals(endpoint))
+				return;
 		// Unknown timestamp domains are not silently presented as monotonic.
 		Integer clock = info.get(CameraCharacteristics.SENSOR_INFO_TIMESTAMP_SOURCE);
 		if (clock == null || clock != CameraCharacteristics.SENSOR_INFO_TIMESTAMP_SOURCE_REALTIME)
@@ -102,7 +108,7 @@ final class Catalog
 		entry.camera = camera;
 		entry.physical = physical;
 		entry.characteristics = info;
-		entry.identifier = identifier.replaceAll("[^a-z0-9-]", "-");
+		entry.identifier = endpoint;
 		entry.name = "Linux Camera " + name;
 		float[] focal = info.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
 		if (physical != null && focal != null && focal.length > 0)

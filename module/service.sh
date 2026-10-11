@@ -4,6 +4,8 @@ CAMERA_RUNTIME=/dev/linux-camera-routing
 umask 077
 mkdir -p "$CAMERA_RUNTIME"
 chmod 0700 "$CAMERA_RUNTIME"
+# Refuse to expose the producer unless the exact ioctl allowlist is verified.
+/system/bin/sh "$MODDIR/policy.sh" > "$CAMERA_RUNTIME/policy.log" 2>&1 || exit 1
 if [ "$(uname -r)" != 5.15.176-gd00ba216ccda ]; then
     echo 'Kernel mismatch; camera module not loaded' > "$CAMERA_RUNTIME/startup.log"
     exit 1

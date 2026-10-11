@@ -46,5 +46,26 @@ failed. Version 0.1.1 uses a non-exported, package-scoped status receiver and
 retains failure status after shutdown. Native connection failures identify the
 failing stage. Startup cleanup is idempotent.
 
-The policy correction was applied live with SELinux enforcing. Real-helper
-restart and camera capture remain pending user confirmation.
+The MLS correction was applied live with SELinux enforcing. The next startup
+reached ioctl registration and exposed the separate Magisk parser issue below.
+
+## Ioctl policy correction (0.1.2)
+
+Magisk 29.0's `native/src/sepolicy/statement.rs` strips `0x` and then uses
+decimal `parse()`, defaulting to zero on failure. The documented hex allowlist
+therefore became `{ 0x0000 }`; real helper registration and stop acknowledgment
+were denied for commands 0x4b40 and 0x4b44. This was confirmed by AVCs and
+`magiskpolicy --print-rules`, not only inferred from source.
+
+`module/policy.sh` now probes parsing against a temporary policy in Android
+tmpfs without loading it, selects the working numeric encoding, replaces only
+the two private camera ioctl rules and verifies the loaded allowlist is exactly
+0x4B40-0x4B47 before allowing broker startup. It refuses unknown parsing behavior.
+The script was run successfully on the phone with SELinux enforcing; its probe
+type was not loaded. User confirmed Ready, and seven real metadata-derived
+V4L2 nodes registered successfully. No images were captured in this startup test.
+
+Three rear lenses appeared both through the logical camera and as public IDs.
+The next APK deduplicates stable identifiers to expose four unique endpoints
+instead of overwriting the same three rear aliases. Updated APK testing and
+actual camera streaming qualification are still pending.

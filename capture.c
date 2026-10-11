@@ -386,10 +386,23 @@ JNIEXPORT jint JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_registerCamera(J
 	{
 		_description.modes[_i] = (struct camera_mode){_modes[_i * 3], _modes[_i * 3 + 1], _modes[_i * 3 + 2], 0};
 	}
-	char _reply = 0;
-	if (ioctl(_capture->control, CAMERA_REGISTER, &_description) || send(_capture->broker, &_description, sizeof(_description), MSG_NOSIGNAL) != sizeof(_description) || recv(_capture->broker, &_reply, 1, 0) != 1 || _reply != 'K')
+	if (ioctl(_capture->control, CAMERA_REGISTER, &_description))
 	{
-		_capture_throw(__env, "Camera registration failed");
+		int32_t _error = errno;
+		char _message[192];
+		snprintf(_message, sizeof(_message), "Register camera %s: %s", _description.identifier, strerror(_error));
+		_capture_throw(__env, _message);
+		return -1;
+	}
+	char _reply = 0;
+	if (send(_capture->broker, &_description, sizeof(_description), MSG_NOSIGNAL) != sizeof(_description) || recv(_capture->broker, &_reply, 1, 0) != 1)
+	{
+		_capture_throw(__env, "Camera registered, but broker communication failed");
+		return -1;
+	}
+	if (_reply != 'K')
+	{
+		_capture_throw(__env, "Camera registered, but broker could not publish its Linux device");
 		return -1;
 	}
 	_capture->count++;

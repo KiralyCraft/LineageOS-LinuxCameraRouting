@@ -3,12 +3,12 @@
 Android Camera2 capture exposed to the same device's Linux chroot as ordinary
 V4L2 webcams. Source: https://github.com/KiralyCraft/LineageOS-LinuxCameraRouting.
 
-## Current release: 0.1.1, first device-test candidate
+## Current release: 0.1.2, first device-test candidate
 
 The kernel module's synthetic lifecycle tests and 48 V4L2 API compliance tests
-have passed on the Xperia XQ-DQ72. Android camera capture, physical-lens selection,
-application interoperability, screen-off capture and high-rate performance still
-require installing and enabling the APK. Supported-mode metadata is not a measured
+have passed on the Xperia XQ-DQ72. Helper startup and camera registration now pass with SELinux enforcing.
+Actual camera capture, physical-lens selection, application interoperability,
+screen-off capture and high-rate performance remain to be qualified. Supported-mode metadata is not a measured
 frame-rate result. See `diagnostics/VALIDATION.md` for the exact tested boundary.
 
 ## Architecture
@@ -44,9 +44,9 @@ counted. Such frame drops differ from compression or changing pixel samples.
 
 ## Installation and startup
 
-1. Install `LinuxCameraRouting-0.1.1.zip` through Magisk, then reboot. It is pinned
+1. Install `LinuxCameraRouting-0.1.2.zip` through Magisk, then reboot. It is pinned
    to kernel `5.15.176-gd00ba216ccda`; a mismatched kernel is refused.
-2. Install `LinuxCamera-0.1.1.apk` manually. Grant camera permission, open the app,
+2. Install `LinuxCamera-0.1.2.apk` manually. Grant camera permission, open the app,
    and tap **Enable Linux cameras**.
 3. In Linux, optionally run `./install-linux.sh` to install `linux-cameractl`.
    Select a Linux Camera entry in Firefox, OBS or another V4L2 application.
@@ -58,7 +58,10 @@ or additional Linux daemon are needed. This works independently of HDMI.
 
 For live development, load the exact `.ko` and start the native broker from
 Android root after applying the supplied SELinux policy and labeling the private
-control node. The packaged Magisk service encodes the exact setup. Do not unload
+control node, then run `module/policy.sh` from Android root before the broker.
+The script probes the installed Magisk parser offline and verifies the exact
+camera ioctl allowlist; it handles Magisk 29's hexadecimal parsing defect.
+The packaged Magisk service encodes the exact setup. Do not unload
 while the helper, consumers, or exported mappings are alive. Stop the helper and
 close camera applications first. Reboot clears a temporary insmod deployment.
 

@@ -9,9 +9,9 @@ allow untrusted_app magisk unix_stream_socket connectto
 allow untrusted_app magisk unix_stream_socket { read write getattr getopt setopt shutdown }
 allow untrusted_app magisk fd use
 allow untrusted_app linux_camera_device chr_file { read write ioctl getattr }
-allowxperm untrusted_app linux_camera_device chr_file ioctl { 0x4b40 0x4b41 0x4b42 0x4b43 0x4b44 0x4b45 0x4b46 0x4b47 }
 allow untrusted_app_32 magisk unix_stream_socket connectto
 allow untrusted_app_32 magisk unix_stream_socket { read write getattr getopt setopt shutdown }
 allow untrusted_app_32 magisk fd use
 allow untrusted_app_32 linux_camera_device chr_file { read write ioctl getattr }
-allowxperm untrusted_app_32 linux_camera_device chr_file ioctl { 0x4b40 0x4b41 0x4b42 0x4b43 0x4b44 0x4b45 0x4b46 0x4b47 }
+# Private ioctl permissions are installed and verified by policy.sh.
+# Magisk 29 misparses hexadecimal xperm numbers; do not place them here.
