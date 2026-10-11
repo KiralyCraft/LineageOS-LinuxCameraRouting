@@ -120,3 +120,20 @@ camera is showing the intended scene. No capture or dataspace error occurred.
 V4L2 G_FMT reports 470 System BG primaries, Rec.709 transfer, ITU-R 601 matrix
 and full quantization. Android reports no active camera clients after the test;
 the helper returned to Ready.
+
+## Main/telephoto retry after repositioning
+
+After the user flipped the phone, both rear-2 (main) and rear-3 (telephoto)
+produced non-black 1280x720 images, visually inspected from the Linux V4L2
+consumer. The main image shows the ceiling/light fixture; the telephoto image
+shows a narrower ceiling view with lighting variation. The main image is soft;
+this is a basic capture/non-black check, not autofocus or image-quality
+qualification. No code or exposure setting was changed between the dark first
+pass and this retry.
+
+Main grayscale range was 7..255, mean 110.876; telephoto 65..255, mean 140.742.
+These are statistics of the inspection PNGs, not sensor exposure measurements.
+Together with the first front/ultrawide pass, all four endpoints now have a
+visually inspected non-black capture. No active Android camera clients remained
+after cleanup, and the helper returned to Ready. Private images remain in RAM
+only; no images were added to the repository.
