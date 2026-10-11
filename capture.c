@@ -277,19 +277,36 @@ JNIEXPORT jlong JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_connect(JNIEnv 
 		_capture_throw(__env, "Camera allocation failed");
 		return 0;
 	}
+	const char *_stage = "create broker socket";
 	_capture->broker = socket(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0);
 	_capture->control = -1;
 	_capture->wake = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
 	struct sockaddr_un _address = {.sun_family = AF_UNIX};
 	memcpy(_address.sun_path + 1, CAMERA_SOCKET, sizeof(CAMERA_SOCKET));
-	struct timeval _timeout = {.tv_sec = 5};
-	setsockopt(_capture->broker, SOL_SOCKET, SO_RCVTIMEO, &_timeout, sizeof(_timeout));
-	struct ucred _peer;
-	socklen_t _peerSize = sizeof(_peer);
-	if (_capture->broker < 0 || _capture->wake < 0 || connect(_capture->broker, (struct sockaddr *)&_address, offsetof(struct sockaddr_un, sun_path) + sizeof(CAMERA_SOCKET)) || getsockopt(_capture->broker, SOL_SOCKET, SO_PEERCRED, &_peer, &_peerSize) || _peer.uid != 0)
+	if (_capture->broker < 0 || _capture->wake < 0)
 	{
 		goto _failure;
 	}
+	struct timeval _timeout = {.tv_sec = 5};
+	setsockopt(_capture->broker, SOL_SOCKET, SO_RCVTIMEO, &_timeout, sizeof(_timeout));
+	_stage = "connect to camera broker";
+	if (connect(_capture->broker, (struct sockaddr *)&_address, offsetof(struct sockaddr_un, sun_path) + sizeof(CAMERA_SOCKET)))
+	{
+		goto _failure;
+	}
+	struct ucred _peer;
+	socklen_t _peerSize = sizeof(_peer);
+	_stage = "verify camera broker";
+	if (getsockopt(_capture->broker, SOL_SOCKET, SO_PEERCRED, &_peer, &_peerSize))
+	{
+		goto _failure;
+	}
+	if (_peer.uid != 0)
+	{
+		errno = EACCES;
+		goto _failure;
+	}
+	_stage = "receive camera device descriptor (check broker and SELinux policy)";
 	char _marker;
 	char _ancillary[CMSG_SPACE(sizeof(int32_t))] = {0};
 	struct iovec _vector = {&_marker, 1};
@@ -298,18 +315,25 @@ JNIEXPORT jlong JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_connect(JNIEnv 
 	_message.msg_iovlen = 1;
 	_message.msg_control = _ancillary;
 	_message.msg_controllen = sizeof(_ancillary);
-	if (recvmsg(_capture->broker, &_message, MSG_CMSG_CLOEXEC) != 1)
+	ssize_t _received = recvmsg(_capture->broker, &_message, MSG_CMSG_CLOEXEC);
+	if (_received != 1)
 	{
+		if (_received == 0)
+		{
+			errno = ECONNRESET;
+		}
 		goto _failure;
 	}
 	struct cmsghdr *_header = CMSG_FIRSTHDR(&_message);
 	if (!_header || _header->cmsg_level != SOL_SOCKET || _header->cmsg_type != SCM_RIGHTS || _header->cmsg_len != CMSG_LEN(sizeof(int32_t)))
 	{
+		errno = EPROTO;
 		goto _failure;
 	}
 	memcpy(&_capture->control, CMSG_DATA(_header), sizeof(int32_t));
 	if (_marker != 'F' || (_message.msg_flags & (MSG_CTRUNC | MSG_TRUNC)))
 	{
+		errno = EPROTO;
 		goto _failure;
 	}
 	pthread_mutex_init(&_capture->mutex, NULL);
@@ -322,12 +346,15 @@ JNIEXPORT jlong JNICALL Java_dev_kiraly_linuxcamera_NativeCamera_connect(JNIEnv 
 		_capture->mappings[_i].descriptor = -1;
 	}
 	return (jlong)(intptr_t)_capture;
-_failure:
+_failure:;
+	int32_t _error = errno;
+	char _failureMessage[256];
+	snprintf(_failureMessage, sizeof(_failureMessage), "%s: %s", _stage, strerror(_error));
 	close(_capture->broker);
 	close(_capture->control);
 	close(_capture->wake);
 	free(_capture);
-	_capture_throw(__env, "Camera broker/module unavailable; check Magisk service");
+	_capture_throw(__env, _failureMessage);
 	return 0;
 }
 

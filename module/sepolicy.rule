@@ -1,6 +1,9 @@
 # Only the root broker can open this control device. Its descriptor is handed
 # to the exact installed helper UID after SO_PEERCRED verification.
 type linux_camera_device dev_type
+# The root-created descriptor crosses the helper's per-app MLS categories.
+# Trust this object only; opening it still requires root and broker UID checks.
+typeattribute linux_camera_device mlstrustedobject
 allow magisk linux_camera_device chr_file { open read write ioctl getattr }
 allow untrusted_app magisk unix_stream_socket connectto
 allow untrusted_app magisk unix_stream_socket { read write getattr getopt setopt shutdown }

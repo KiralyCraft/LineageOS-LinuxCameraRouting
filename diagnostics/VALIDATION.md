@@ -30,3 +30,21 @@ Target: Xperia XQ-DQ72, kernel `5.15.176-gd00ba216ccda`.
   helper/broker death, and reboot startup.
 
 No real camera image or microphone audio was captured by these synthetic tests.
+
+## Startup correction (0.1.1)
+
+The installed 0.1.0 helper failed before camera enumeration: SELinux denied
+`write` on the received `linux_camera_device` descriptor. Its root-created `s0`
+label differs from the helper's per-app MLS categories. LineageOS 22.2
+`system/sepolicy/private/mls` requires equivalence for character-device writes
+unless the subject or object is MLS-trusted. The correction adds only
+`linux_camera_device` to `mlstrustedobject`; the helper still has no device-open
+permission and the root broker still authenticates the installed package UID.
+
+The Activity also retained its initial “Starting” text after the service had
+failed. Version 0.1.1 uses a non-exported, package-scoped status receiver and
+retains failure status after shutdown. Native connection failures identify the
+failing stage. Startup cleanup is idempotent.
+
+The policy correction was applied live with SELinux enforcing. Real-helper
+restart and camera capture remain pending user confirmation.

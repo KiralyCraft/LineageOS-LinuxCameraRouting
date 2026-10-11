@@ -13,6 +13,7 @@ import java.util.*;
 public final class CameraService extends Service
 {
 	static volatile String status = "Stopped";
+	static final String STATUS_CHANGED = "dev.kiraly.linuxcamera.STATUS_CHANGED";
 	static final String CHANNEL = "linux-camera";
 	private HandlerThread thread;
 	private Handler handler;
@@ -25,7 +26,9 @@ public final class CameraService extends Service
 	private PowerManager.WakeLock wake;
 	private int active = -1;
 	private long generation;
-	private boolean shuttingDown;
+	private volatile boolean shuttingDown;
+	private boolean failed;
+	private volatile boolean destroyed;
 	private boolean retiring;
 	private boolean opening;
 	private long stopGeneration;
@@ -52,8 +55,10 @@ public final class CameraService extends Service
 	private void report(String message)
 	{
 		status = message;
+		sendBroadcast(new Intent(STATUS_CHANGED).setPackage(getPackageName()));
 		android.util.Log.i("LinuxCamera", message);
-		getSystemService(NotificationManager.class).notify(1, notification());
+		if (!destroyed)
+			getSystemService(NotificationManager.class).notify(1, notification());
 	}
 
 	@Override
@@ -70,6 +75,7 @@ public final class CameraService extends Service
 				return;
 			try
 			{
+				report("Starting…");
 				nativeHandle = NativeCamera.connect(this);
 				entries = Catalog.enumerate(manager);
 				if (entries.isEmpty())
@@ -81,6 +87,7 @@ public final class CameraService extends Service
 			}
 			catch (Exception failure)
 			{
+				failed = true;
 				report("Start failed: " + failure.getMessage());
 				shutdown();
 				stopSelf();
@@ -98,6 +105,7 @@ public final class CameraService extends Service
 				return;
 			if (index < 0)
 			{
+				failed = true;
 				report("Broker connection lost");
 				shutdown();
 				stopSelf();
@@ -267,6 +275,8 @@ public final class CameraService extends Service
 				NativeCamera.disconnect(nativeHandle);
 				nativeHandle = 0;
 			}
+			if (!failed)
+				report("Stopped");
 			thread.quitSafely();
 		}
 		else
@@ -275,6 +285,8 @@ public final class CameraService extends Service
 
 	private void shutdown()
 	{
+		if (shuttingDown)
+			return;
 		shuttingDown = true;
 		retire(generation);
 	}
@@ -282,7 +294,9 @@ public final class CameraService extends Service
 	@Override
 	public void onDestroy()
 	{
-		handler.post(this::shutdown);
+		destroyed = true;
+		if (!shuttingDown)
+			handler.post(this::shutdown);
 		stopForeground(STOP_FOREGROUND_REMOVE);
 		super.onDestroy();
 	}

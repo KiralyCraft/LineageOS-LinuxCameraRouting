@@ -3,6 +3,9 @@ package dev.kiraly.linuxcamera;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.Context;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -11,6 +14,13 @@ import android.widget.*;
 public final class MainActivity extends Activity
 {
 	private TextView status;
+	private final BroadcastReceiver statusReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			status.setText(CameraService.status);
+		}
+	};
 	@Override
 	public void onCreate(Bundle state)
 	{
@@ -46,7 +56,12 @@ public final class MainActivity extends Activity
 		layout.addView(refresh);
 		Button stop = new Button(this);
 		stop.setText("Disable Linux cameras");
-		stop.setOnClickListener(view -> { stopService(new Intent(this, CameraService.class)); status.setText("Stopping"); });
+		stop.setOnClickListener(view -> {
+			if (stopService(new Intent(this, CameraService.class)))
+				status.setText("Stopping…");
+			else
+				status.setText(CameraService.status);
+		});
 		layout.addView(stop);
 		setContentView(layout);
 	}
@@ -61,6 +76,19 @@ public final class MainActivity extends Activity
 		super.onRequestPermissionsResult(request, permissions, results);
 		if (request == 1 && checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
 			enable();
+	}
+	@Override
+	public void onStart()
+	{
+		super.onStart();
+		registerReceiver(statusReceiver, new IntentFilter(CameraService.STATUS_CHANGED), Context.RECEIVER_NOT_EXPORTED);
+		status.setText(CameraService.status);
+	}
+	@Override
+	public void onStop()
+	{
+		unregisterReceiver(statusReceiver);
+		super.onStop();
 	}
 	@Override
 	public void onResume()

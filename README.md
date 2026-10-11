@@ -1,9 +1,9 @@
 # Linux Camera Routing
 
 Android Camera2 capture exposed to the same device's Linux chroot as ordinary
-V4L2 webcams. This repository is local-only; no remote is configured.
+V4L2 webcams. Source: https://github.com/KiralyCraft/LineageOS-LinuxCameraRouting.
 
-## Current release: 0.1.0, first device-test candidate
+## Current release: 0.1.1, first device-test candidate
 
 The kernel module's synthetic lifecycle tests and 48 V4L2 API compliance tests
 have passed on the Xperia XQ-DQ72. Android camera capture, physical-lens selection,
@@ -44,9 +44,9 @@ counted. Such frame drops differ from compression or changing pixel samples.
 
 ## Installation and startup
 
-1. Install `LinuxCameraRouting-0.1.0.zip` through Magisk, then reboot. It is pinned
+1. Install `LinuxCameraRouting-0.1.1.zip` through Magisk, then reboot. It is pinned
    to kernel `5.15.176-gd00ba216ccda`; a mismatched kernel is refused.
-2. Install `LinuxCamera-0.1.0.apk` manually. Grant camera permission, open the app,
+2. Install `LinuxCamera-0.1.1.apk` manually. Grant camera permission, open the app,
    and tap **Enable Linux cameras**.
 3. In Linux, optionally run `./install-linux.sh` to install `linux-cameractl`.
    Select a Linux Camera entry in Firefox, OBS or another V4L2 application.

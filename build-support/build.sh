@@ -18,7 +18,7 @@ gcc -std=c99 -g -O1 -Wall -Wextra -Werror -fsanitize=address,undefined "$CAMERA_
 "$CAMERA_NDK/aarch64-linux-android35-clang" "${CAMERA_CFLAGS[@]}" -fPIC -shared -Wl,-z,max-page-size=16384 "$CAMERA_SOURCE/capture.c" "$CAMERA_SOURCE/packing.c" -landroid -lmediandk -llog -o "$CAMERA_BUILD/android/jni/lib/arm64-v8a/liblinux_camera.so"
 bash "$CAMERA_SOURCE/build-support/kernel.sh" "$CAMERA_SOURCE" "$CAMERA_BUILD"
 "$CAMERA_TOOLS/aapt2" compile --dir "$CAMERA_SOURCE/android/app/src/main/res" -o "$CAMERA_BUILD/android/resources.zip"
-"$CAMERA_TOOLS/aapt2" link -o "$CAMERA_BUILD/android/base.apk" -I "$CAMERA_JAR" --manifest "$CAMERA_SOURCE/android/app/src/main/AndroidManifest.xml" --java "$CAMERA_BUILD/android/generated" --version-code 1 --version-name 0.1.0 "$CAMERA_BUILD/android/resources.zip"
+"$CAMERA_TOOLS/aapt2" link -o "$CAMERA_BUILD/android/base.apk" -I "$CAMERA_JAR" --manifest "$CAMERA_SOURCE/android/app/src/main/AndroidManifest.xml" --java "$CAMERA_BUILD/android/generated" --version-code 2 --version-name 0.1.1 "$CAMERA_BUILD/android/resources.zip"
 mapfile -t CAMERA_JAVA < <(find "$CAMERA_SOURCE/android/app/src/main/java" "$CAMERA_BUILD/android/generated" -name '*.java' -type f)
 javac --release 17 -cp "$CAMERA_JAR" -d "$CAMERA_BUILD/android/classes" "${CAMERA_JAVA[@]}"
 mapfile -t CAMERA_CLASSES < <(find "$CAMERA_BUILD/android/classes" -name '*.class' -type f)
@@ -33,5 +33,5 @@ if [[ ! -e "$CAMERA_SIGNING/linux-camera.keystore" ]]; then
     openssl rand -hex 24 > "$CAMERA_SIGNING/password"
     keytool -genkeypair -keystore "$CAMERA_SIGNING/linux-camera.keystore" -storepass:file "$CAMERA_SIGNING/password" -keypass:file "$CAMERA_SIGNING/password" -alias linux-camera -dname 'CN=KiralyCraft Linux Camera' -keyalg RSA -keysize 4096 -validity 10950 > "$CAMERA_BUILD/android/signing.log" 2>&1
 fi
-"$CAMERA_TOOLS/apksigner" sign --ks "$CAMERA_SIGNING/linux-camera.keystore" --ks-pass "file:$CAMERA_SIGNING/password" --out "$CAMERA_BUILD/android/LinuxCamera-0.1.0.apk" "$CAMERA_BUILD/android/aligned.apk"
-"$CAMERA_TOOLS/apksigner" verify --verbose --print-certs "$CAMERA_BUILD/android/LinuxCamera-0.1.0.apk" > "$CAMERA_BUILD/android/verification.txt"
+"$CAMERA_TOOLS/apksigner" sign --ks "$CAMERA_SIGNING/linux-camera.keystore" --ks-pass "file:$CAMERA_SIGNING/password" --out "$CAMERA_BUILD/android/LinuxCamera-0.1.1.apk" "$CAMERA_BUILD/android/aligned.apk"
+"$CAMERA_TOOLS/apksigner" verify --verbose --print-certs "$CAMERA_BUILD/android/LinuxCamera-0.1.1.apk" > "$CAMERA_BUILD/android/verification.txt"
