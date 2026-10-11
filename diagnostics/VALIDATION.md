@@ -93,9 +93,30 @@ Passed on the phone after live module replacement:
 - V4L2 API compliance: 48/48, zero failures and warnings.
 
 Build and packing sanitizer tests passed on the designated build server.
-The new module and broker are loaded temporarily. Visual capture on 0.1.3
-requires manual installation of the new matching APK; not yet verified.
+The new module and broker were loaded temporarily. The user installed the
+matching APK; the first real-frame results follow below.
 
 Color references:
 - https://developer.android.com/ndk/reference/group/a-data-space
 - https://docs.kernel.org/userspace-api/media/v4l/colorspaces-details.html
+
+## First real frames on 0.1.3
+
+All four unique endpoints delivered 1280x720 frames at the requested 30-fps
+setting to an ordinary unprivileged Linux FFmpeg V4L2 consumer. Actual cadence
+was not measured in this short still-image test. The first 30 frames were
+skipped before saving each inspected PNG, with explicit full-range BT.601
+conversion for viewing. Images and logs remain only in RAM-backed temporary
+storage; no camera images are committed.
+
+- Front: clearly visible room detail, visual pass.
+- Rear 2.68 mm (ultrawide): visible scene detail, visual pass.
+- Rear 6.08 mm (main): dark, blurred frame; delivery passed, scene verification pending.
+- Rear 10.22 mm (telephoto): almost black frame; delivery passed, scene verification pending.
+
+The user was asked to point the rear lenses at an unobstructed lit scene before
+retesting the latter two. Nonzero image bytes alone do not establish that a
+camera is showing the intended scene. No capture or dataspace error occurred.
+V4L2 G_FMT reports 470 System BG primaries, Rec.709 transfer, ITU-R 601 matrix
+and full quantization. Android reports no active camera clients after the test;
+the helper returned to Ready.
