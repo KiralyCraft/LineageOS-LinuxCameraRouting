@@ -114,7 +114,8 @@ static void _camera_buffer_queue(struct vb2_buffer *__buffer)
 	spin_lock_irqsave(&_camera->pending_lock, _flags);
 	list_add_tail(&_buffer->pending, &_camera->pending);
 	spin_unlock_irqrestore(&_camera->pending_lock, _flags);
-	_camera_notify();
+	/* Camera callbacks drive delivery; requeueing does not wake the control
+	 * worker once per frame. It only makes this destination available. */
 }
 
 static int _camera_start(struct vb2_queue *__queue, unsigned int __count)
