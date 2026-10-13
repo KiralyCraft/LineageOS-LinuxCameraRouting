@@ -3,7 +3,14 @@
 Android Camera2 capture exposed to the same device's Linux chroot as ordinary
 V4L2 webcams. Source: https://github.com/KiralyCraft/LineageOS-LinuxCameraRouting.
 
-## Current release: 0.1.5, fast packing enabled
+## Current candidate: 0.1.6, acknowledged camera retirement
+
+Version 0.1.6 fixes a reproduced Firefox resolution-change race in the kernel
+module: STREAMOFF/final close now wait for the helper's retirement acknowledgment
+before returning. The queue lock is released while waiting. The installed 0.1.5
+APK remains compatible and needs no update for this fix. Install the new module
+manually and reboot, then enable the helper; browser/lifecycle retesting remains
+pending. See `diagnostics/FIREFOX-20261013.md` for the reproduction and limits.
 
 The Xperia XQ-DQ72 passes synthetic buffer-lifecycle tests and 48 V4L2 API
 compliance tests with SELinux enforcing. All four lenses produced visually
@@ -48,14 +55,15 @@ counted. Such frame drops differ from compression or changing pixel samples.
 
 ## Installation and startup
 
-1. Install `LinuxCameraRouting-0.1.5.zip` through Magisk, then reboot. It is pinned
+1. Install `LinuxCameraRouting-0.1.6.zip` through Magisk, then reboot. It is pinned
    to kernel `5.15.176-gd00ba216ccda`; a mismatched kernel is refused.
-2. Install `LinuxCamera-0.1.5.apk` manually. Grant camera permission, open the app,
+2. Install `LinuxCamera-0.1.6.apk` manually. Grant camera permission, open the app,
    and tap **Enable Linux cameras**.
 3. In Linux, optionally run `./install-linux.sh` to install `linux-cameractl`.
    Select a Linux Camera entry in Firefox, OBS or another V4L2 application.
 
-Version 0.1.3 and later use protocol v2; 0.1.5 APK works with the 0.1.3 module.
+Version 0.1.3 and later use protocol v2. APK 0.1.5 works with module 0.1.6;
+updating the APK alone does not fix the kernel retirement race.
 The first color fix requires a matched APK, broker and kernel module;
 older producers are rejected rather than interpreted with the wrong colors.
 The module boots the broker independently of APK installation. The helper must

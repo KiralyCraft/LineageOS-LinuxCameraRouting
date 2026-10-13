@@ -161,7 +161,7 @@ static void _camera_stop(struct vb2_queue *__queue)
 {
 	camera_t *_camera = vb2_get_drv_priv(__queue);
 	_camera->running = false;
-	_camera->stopping = _camera->connected;
+	WRITE_ONCE(_camera->stopping, _camera->connected);
 	_camera->generation++;
 	_camera_return_buffers(_camera);
 	/* Exported mappings pin their allocations. A fresh STREAMON is blocked
@@ -183,13 +183,56 @@ static const struct vb2_ops _camera_queue_ops = {
 	.wait_finish = vb2_ops_wait_finish,
 };
 
+/* STREAMOFF and final close are lifecycle barriers, not frame pacing. V4L2
+ * has already dropped the queue mutex here, so the producer can query the stop
+ * generation, finish Camera2 teardown, release mappings and acknowledge it.
+ * The deadline only bounds a dead/unresponsive producer; expiry never clears
+ * admission or permits reuse of an unfinished generation. */
+static int _camera_wait_retired(camera_t *__camera)
+{
+	long _result = wait_event_interruptible_timeout(__camera->retirement, !READ_ONCE(__camera->stopping), msecs_to_jiffies(5000));
+	if (_result > 0)
+	{
+		return 0;
+	}
+	if (_result < 0)
+	{
+		return _result;
+	}
+	pr_warn_ratelimited("linux-camera: producer retirement timed out for %s\n", __camera->description.identifier);
+	return -ETIMEDOUT;
+}
+
+static long _camera_capture_ioctl(struct file *__file, unsigned int __command, unsigned long __argument)
+{
+	long _result = video_ioctl2(__file, __command, __argument);
+	if (!_result && __command == VIDIOC_STREAMOFF)
+	{
+		_result = _camera_wait_retired(video_drvdata(__file));
+	}
+	return _result;
+}
+
+static int _camera_capture_release(struct file *__file)
+{
+	/* v4l2_release retains the video-device reference until this returns. */
+	camera_t *_camera = video_drvdata(__file);
+	int _result = vb2_fop_release(__file);
+	int _retired = _camera_wait_retired(_camera);
+	if (_result)
+	{
+		return _result;
+	}
+	return _retired;
+}
+
 static const struct v4l2_file_operations _camera_file_ops = {
 	.owner = THIS_MODULE,
 	.open = v4l2_fh_open,
-	.release = vb2_fop_release,
+	.release = _camera_capture_release,
 	.poll = vb2_fop_poll,
 	.mmap = vb2_fop_mmap,
-	.unlocked_ioctl = video_ioctl2,
+	.unlocked_ioctl = _camera_capture_ioctl,
 };
 
 static void _camera_video_release(struct video_device *__video)
@@ -243,6 +286,7 @@ static int _camera_register(struct camera_register *__description)
 	_camera->mode = __description->modes[0];
 	_camera->connected = true;
 	mutex_init(&_camera->mutex);
+	init_waitqueue_head(&_camera->retirement);
 	spin_lock_init(&_camera->pending_lock);
 	INIT_LIST_HEAD(&_camera->pending);
 	strscpy(_camera->device.name, "linux-camera", sizeof(_camera->device.name));
@@ -330,6 +374,8 @@ static int _camera_control_release(struct inode *__inode, struct file *__file)
 		vb2_queue_error(&_camera->queue);
 		_camera_return_buffers(_camera);
 		_camera_release_admission(_camera);
+		WRITE_ONCE(_camera->stopping, false);
+		wake_up_all(&_camera->retirement);
 		mutex_unlock(&_camera->mutex);
 		_camera_devices[_i] = NULL;
 		video_unregister_device(&_camera->video);
@@ -429,8 +475,9 @@ static long _camera_control_ioctl(struct file *__file, unsigned int __command, u
 		}
 		else
 		{
-			_camera->stopping = false;
 			_camera_release_admission(_camera);
+			WRITE_ONCE(_camera->stopping, false);
+			wake_up_all(&_camera->retirement);
 		}
 	}
 	else if (__command == CAMERA_FAIL)
@@ -443,7 +490,7 @@ static long _camera_control_ioctl(struct file *__file, unsigned int __command, u
 		{
 			_camera->error = _state.error;
 			_camera->running = false;
-			_camera->stopping = true;
+			WRITE_ONCE(_camera->stopping, true);
 			_camera->generation++;
 			vb2_queue_error(&_camera->queue);
 			_camera_return_buffers(_camera);

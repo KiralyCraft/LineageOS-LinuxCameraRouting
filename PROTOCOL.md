@@ -68,3 +68,23 @@ checks every acquired image against it before copying. G_FMT, TRY_FMT and
 S_FMT expose the registered profile before streaming. A mismatched dataspace
 errors the stream; metadata never changes silently midway through capture.
 This is raw planar YUV, not a JPEG codec despite Android's JFIF dataspace name.
+
+## V4L2 retirement barrier (module 0.1.6)
+
+A successful STREAMOFF waits for CAMERA_ACK_STOP of the stopped generation;
+final consumer close also waits when it caused or observes pending retirement.
+The standard V4L2/vb2 operation runs first, then the wait runs outside the queue
+mutex, so the helper can process QUERY/ACK_STOP. The V4L2 open reference keeps
+the video device alive during both waits. Camera2 onClosed, image-reader deletion
+and mapping release still precede acknowledgment in the existing helper.
+
+ACK_STOP releases hardware admission before clearing the wait condition and
+waking callers. Producer disconnect likewise releases admission and wakes stop
+waiters, while marking the queue disconnected/error. Stop notification itself
+is still asynchronous to the helper; the consumer sees completed retirement.
+There is no periodic polling or per-frame wait. An interrupted wait returns its
+signal error; a five-second fault deadline returns ETIMEDOUT and logs a warning.
+Neither path fakes acknowledgment or clears the retirement/admission state.
+A dead or faulty producer therefore cannot authorize early buffer reuse. Final
+close errors are ignored by V4L2 core, but the retirement remains blocked until
+real acknowledgment or producer disconnect.

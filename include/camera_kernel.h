@@ -17,6 +17,7 @@ typedef struct
 	struct video_device video;
 	struct vb2_queue queue;
 	struct mutex mutex;
+	wait_queue_head_t retirement;
 	spinlock_t pending_lock;
 	struct list_head pending;
 	struct camera_register description;

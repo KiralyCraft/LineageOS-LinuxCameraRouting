@@ -14,6 +14,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <pthread.h>
+#include <poll.h>
+#include <sys/eventfd.h>
+
+typedef struct
+{
+	int32_t descriptor;
+	uint32_t type;
+	int32_t close_only;
+	int32_t done;
+	int32_t result;
+	int32_t error;
+	int32_t completion;
+} lifecycle_t;
 
 static volatile sig_atomic_t _lifecycle_stop;
 
@@ -37,6 +51,55 @@ static uint64_t _lifecycle_time(void)
 	struct timespec _time;
 	clock_gettime(CLOCK_MONOTONIC, &_time);
 	return (uint64_t)_time.tv_sec * 1000000000ULL + _time.tv_nsec;
+}
+
+static void *_lifecycle_retire(void *__argument)
+{
+	lifecycle_t *_operation = __argument;
+	if (_operation->close_only)
+	{
+		_operation->result = close(_operation->descriptor);
+	}
+	else
+	{
+		_operation->result = ioctl(_operation->descriptor, VIDIOC_STREAMOFF, &_operation->type);
+	}
+	_operation->error = errno;
+	__atomic_store_n(&_operation->done, 1, __ATOMIC_RELEASE);
+	uint64_t _one = 1;
+	_lifecycle_check(write(_operation->completion, &_one, sizeof(_one)) == sizeof(_one), "signal consumer completion");
+	return NULL;
+}
+
+static void _lifecycle_start_retire(pthread_t *__worker, lifecycle_t *__operation)
+{
+	__operation->completion = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+	_lifecycle_check(__operation->completion >= 0, "create consumer completion event");
+	_lifecycle_check(pthread_create(__worker, NULL, _lifecycle_retire, __operation) == 0, "start concurrent consumer retirement");
+}
+
+static void _lifecycle_pending(lifecycle_t *__operation)
+{
+	/* A bounded negative test gives the consumer thread time to return if the
+	 * old nonblocking implementation is accidentally reintroduced. */
+	struct pollfd _completion = {.fd = __operation->completion, .events = POLLIN};
+	_lifecycle_check(poll(&_completion, 1, 50) == 0 && !__atomic_load_n(&__operation->done, __ATOMIC_ACQUIRE), "consumer remains blocked before acknowledgment");
+}
+
+static void _lifecycle_wait_stopped(int32_t __control, struct camera_state *__state)
+{
+	for (;;)
+	{
+		uint64_t _serial;
+		_lifecycle_check(ioctl(__control, CAMERA_EVENTS, &_serial) == 0, "observe control events");
+		_lifecycle_check(ioctl(__control, CAMERA_QUERY, __state) == 0, "query stop generation");
+		if (!__state->running)
+		{
+			return;
+		}
+		struct pollfd _event = {.fd = __control, .events = POLLIN};
+		_lifecycle_check(poll(&_event, 1, 2000) > 0, "consumer submitted stop");
+	}
 }
 
 int main(int __argc, char **__argv)
@@ -151,7 +214,12 @@ int main(int __argc, char **__argv)
 	struct v4l2_buffer _requeue = {.index = 0, .type = _type, .memory = V4L2_MEMORY_MMAP};
 	_lifecycle_check(ioctl(_consumer, VIDIOC_QBUF, &_requeue) == 0, "requeue one");
 	_lifecycle_check(ioctl(_control, CAMERA_ACQUIRE, &_empty) == 0 && _empty.index == 0, "only returned buffer reused");
-	_lifecycle_check(ioctl(_consumer, VIDIOC_STREAMOFF, &_type) == 0, "stop during producer ownership");
+	lifecycle_t _stop = {.descriptor = _consumer, .type = _type};
+	pthread_t _stopThread;
+	_lifecycle_start_retire(&_stopThread, &_stop);
+	struct camera_state _retiring = {.index = _camera.index};
+	_lifecycle_wait_stopped(_control, &_retiring);
+	_lifecycle_pending(&_stop);
 	_empty.timestamp_ns = _lifecycle_time();
 	_lifecycle_check(ioctl(_control, CAMERA_COMPLETE, &_empty) < 0 && errno == ESTALE, "late producer completion rejected");
 	_lifecycle_check(ioctl(_control, CAMERA_ACK_STOP, &_state) < 0 && errno == ESTALE, "old retirement generation rejected");
@@ -164,16 +232,53 @@ int main(int __argc, char **__argv)
 	}
 	_lifecycle_check(ioctl(_control, CAMERA_QUERY, &_state) == 0 && !_state.running, "stop event");
 	_lifecycle_check(ioctl(_control, CAMERA_ACK_STOP, &_state) == 0, "retirement acknowledged");
-	_lifecycle_check(ioctl(_consumer, VIDIOC_STREAMON, &_type) == 0, "restart after retirement");
+	_lifecycle_check(pthread_join(_stopThread, NULL) == 0 && _stop.result == 0, "STREAMOFF completes after acknowledgment");
+	close(_stop.completion);
+	_lifecycle_check(ioctl(_consumer, VIDIOC_STREAMON, &_type) == 0, "immediate restart after retirement");
 	_lifecycle_check(ioctl(_control, CAMERA_COMPLETE, &_last) < 0 && errno == ESTALE, "previous frame invalid after restart");
-	close(_control);
-	struct v4l2_buffer _dead = {.type = _type, .memory = V4L2_MEMORY_MMAP};
-	_lifecycle_check(ioctl(_consumer, VIDIOC_DQBUF, &_dead) < 0, "producer death errors consumer");
 	for (uint32_t _i = 0; _i < 3; ++_i)
 	{
 		munmap(_consumerMaps[_i], _lengths[_i]);
 	}
+	lifecycle_t _close = {.descriptor = _consumer, .close_only = 1};
+	_lifecycle_start_retire(&_stopThread, &_close);
+	_lifecycle_wait_stopped(_control, &_state);
+	_lifecycle_pending(&_close);
+	_lifecycle_check(ioctl(_control, CAMERA_ACK_STOP, &_state) == 0, "acknowledge final-close retirement");
+	_lifecycle_check(pthread_join(_stopThread, NULL) == 0 && _close.result == 0, "close completes after acknowledgment");
+	close(_close.completion);
+	_consumer = device_open(_path, O_RDWR | O_NONBLOCK | O_CLOEXEC);
+	_lifecycle_check(_consumer >= 0, "immediately reopen retired camera");
+	struct v4l2_format _reformat = {.type = _type, .fmt.pix = {.width = 64, .height = 48, .pixelformat = V4L2_PIX_FMT_YUV420}};
+	_lifecycle_check(ioctl(_consumer, VIDIOC_S_FMT, &_reformat) == 0, "immediate format change after final close");
+	_request.count = 3;
+	_lifecycle_check(ioctl(_consumer, VIDIOC_REQBUFS, &_request) == 0, "allocate after final close");
+	_lifecycle_check(ioctl(_consumer, VIDIOC_QBUF, &_requeue) == 0 && ioctl(_consumer, VIDIOC_STREAMON, &_type) == 0, "restart after final close");
+	struct sigaction _interrupt = {.sa_handler = _lifecycle_signal};
+	sigemptyset(&_interrupt.sa_mask);
+	_lifecycle_check(sigaction(SIGUSR1, &_interrupt, NULL) == 0, "install interrupt without restart");
+	lifecycle_t _interrupted = {.descriptor = _consumer, .type = _type};
+	_lifecycle_start_retire(&_stopThread, &_interrupted);
+	_lifecycle_wait_stopped(_control, &_state);
+	_lifecycle_pending(&_interrupted);
+	_lifecycle_check(pthread_kill(_stopThread, SIGUSR1) == 0, "interrupt pending stop");
+	_lifecycle_check(pthread_join(_stopThread, NULL) == 0 && _interrupted.result == -1 && _interrupted.error == EINTR, "interrupted stop reports EINTR");
+	close(_interrupted.completion);
+	_lifecycle_check(ioctl(_consumer, VIDIOC_QBUF, &_requeue) == 0, "queue after interrupted stop");
+	_lifecycle_check(ioctl(_consumer, VIDIOC_STREAMON, &_type) < 0 && errno == EBUSY, "interruption never retires producer");
+	_lifecycle_check(ioctl(_consumer, VIDIOC_STREAMOFF, &_type) < 0 && errno == ETIMEDOUT, "unresponsive producer bounds stop wait");
+	_lifecycle_check(ioctl(_consumer, VIDIOC_QBUF, &_requeue) == 0, "queue after expired stop");
+	_lifecycle_check(ioctl(_consumer, VIDIOC_STREAMON, &_type) < 0 && errno == EBUSY, "timeout never retires producer");
+	lifecycle_t _death = {.descriptor = _consumer, .type = _type};
+	_lifecycle_start_retire(&_stopThread, &_death);
+	_lifecycle_wait_stopped(_control, &_state);
+	_lifecycle_pending(&_death);
+	close(_control);
+	_lifecycle_check(pthread_join(_stopThread, NULL) == 0 && _death.result == 0, "producer death wakes pending retirement");
+	close(_death.completion);
+	struct v4l2_buffer _dead = {.type = _type, .memory = V4L2_MEMORY_MMAP};
+	_lifecycle_check(ioctl(_consumer, VIDIOC_DQBUF, &_dead) < 0, "producer death errors consumer");
 	close(_consumer);
-	puts("PASS synthetic: color profiles, old ABI and duplicate rejection, exact patterns, DMA-BUF sharing, exclusive ownership, held buffers, stale epochs, cancellation, restart, producer death");
+	puts("PASS synthetic: color profiles, old ABI and duplicate rejection, exact patterns, DMA-BUF sharing, exclusive ownership, held buffers, stale epochs, cancellation, acknowledged STREAMOFF/close barriers, immediate reopen, interrupted/expired stop safety, producer death wakeup");
 	return 0;
 }
