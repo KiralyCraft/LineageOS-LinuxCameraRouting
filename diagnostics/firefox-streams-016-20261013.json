@@ -1,0 +1,42 @@
+[
+  {
+    "node": "video2",
+    "width": 640,
+    "height": 480,
+    "frames": 0,
+    "advancing_timestamps": false,
+    "timestamp_samples": 0
+  },
+  {
+    "node": "video5",
+    "width": 640,
+    "height": 480,
+    "frames": 77,
+    "advancing_timestamps": true,
+    "timestamp_samples": 77
+  },
+  {
+    "node": "video5",
+    "width": 1920,
+    "height": 1080,
+    "frames": 140,
+    "advancing_timestamps": true,
+    "timestamp_samples": 140
+  },
+  {
+    "node": "video2",
+    "width": 640,
+    "height": 480,
+    "frames": 74,
+    "advancing_timestamps": true,
+    "timestamp_samples": 74
+  },
+  {
+    "node": "video2",
+    "width": 1920,
+    "height": 1080,
+    "frames": 136,
+    "advancing_timestamps": true,
+    "timestamp_samples": 136
+  }
+]

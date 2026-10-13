@@ -3,14 +3,15 @@
 Android Camera2 capture exposed to the same device's Linux chroot as ordinary
 V4L2 webcams. Source: https://github.com/KiralyCraft/LineageOS-LinuxCameraRouting.
 
-## Current candidate: 0.1.6, acknowledged camera retirement
+## Current release: 0.1.6, acknowledged camera retirement
 
 Version 0.1.6 fixes a reproduced Firefox resolution-change race in the kernel
 module: STREAMOFF/final close now wait for the helper's retirement acknowledgment
 before returning. The queue lock is released while waiting. The installed 0.1.5
 APK remains compatible and needs no update for this fix. Install the new module
-manually and reboot, then enable the helper; browser/lifecycle retesting remains
-pending. See `diagnostics/FIREFOX-20261013.md` for the reproduction and limits.
+manually and reboot, then enable the helper. Isolated Firefox front/rear
+640x480-to-1080p capture and the expanded lifecycle tests pass on the installed
+module. See `diagnostics/FIREFOX-20261013.md` for the reproduction and limits.
 
 The Xperia XQ-DQ72 passes synthetic buffer-lifecycle tests and 48 V4L2 API
 compliance tests with SELinux enforcing. All four lenses produced visually

@@ -1,0 +1,1 @@
+PASS synthetic: color profiles, old ABI and duplicate rejection, exact patterns, DMA-BUF sharing, exclusive ownership, held buffers, stale epochs, cancellation, acknowledged STREAMOFF/close barriers, immediate reopen, interrupted/expired stop safety, producer death wakeup
